@@ -1,0 +1,141 @@
+﻿ @using System.Collections.Generic
+
+
+ <style>
+
+    .metadata-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .metadata-card {
+        margin-top: 10px;
+        background: #f5f5f5;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .metadata-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+    }
+
+    .metadata-tag {
+        font-size: 1.1rem;
+    }
+
+    .metadata-type {
+        background-color: #d0e7ff;
+        color: #0078d4;
+        border-radius: 4px;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .metadata-content {
+        font-size: 0.95rem;
+        color: #333;
+    }
+
+    .metadata-link {
+        color: #0066cc;
+        text-decoration: none;
+        word-break: break-all;
+    }
+
+    .metadata-code {
+        background-color: #eaeaea;
+        padding: 0.5rem;
+        border-radius: 4px;
+        font-family: Consolas, monospace;
+        overflow-x: auto;
+    }
+
+</style>
+<div class="metadata-container">
+    @if (metadataItems != null && metadataItems.Count > 0)
+    {
+        @foreach (var item in metadataItems)
+        {
+            <div class="metadata-card">
+                <div class="metadata-header">
+                    <span class="metadata-tag">@item.TagName</span>
+                    <span class="metadata-type">@item.TagType</span>
+                </div>
+
+                <div class="metadata-content">
+                    @switch (item.TagType)
+                    {
+                        case "Link":
+                            <a href="@item.TagValue" target="_blank" class="metadata-link">
+                                🔗 @item.TagValue
+                            </a>
+                            break;
+                        case "Text":
+                            <p>@item.TagValue</p>
+                            break;
+                        case "Code":
+                            <pre class="metadata-code"><code>@item.TagValue</code></pre>
+                            break;
+                        default:
+                            <p>@item.TagValue</p>
+                            break;
+                    }
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <!-- Example placeholder metadata -->
+        <div class="metadata-placeholder">
+            <h4>Example Metadata:</h4>
+            <div class="metadata-card">
+                <div class="metadata-header">
+                    <span class="metadata-tag">Website</span>
+                    <span class="metadata-type">Link</span>
+                </div>
+                <div class="metadata-content">
+                    <a href="https://example.com" target="_blank" class="metadata-link">🔗 https://example.com</a>
+                </div>
+            </div>
+
+            <div class="metadata-card">
+                <div class="metadata-header">
+                    <span class="metadata-tag">Description</span>
+                    <span class="metadata-type">Text</span>
+                </div>
+                <div class="metadata-content">
+                    <p>This is a sample description for illustrative purposes.</p>
+                </div>
+            </div>
+
+            <div class="metadata-card">
+                <div class="metadata-header">
+                    <span class="metadata-tag">Config</span>
+                    <span class="metadata-type">Code</span>
+                </div>
+                <div class="metadata-content">
+                    <pre class="metadata-code"><code>{ "enabled": true, "level": "debug" }</code></pre>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Metadata> metadataItems;
+
+    public async Task ViewMetaData(List<Metadata> items)
+    {
+        metadataItems = items;
+        StateHasChanged();
+    }
+
+    
+}

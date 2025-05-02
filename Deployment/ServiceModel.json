@@ -1,0 +1,41 @@
+{
+    "$schema": "https://ev2schema.azure.net/schemas/2020-01-01/serviceModel.json",
+    "contentVersion": "1.0.0.0",
+    "serviceMetadata": {
+      "serviceGroup": "ServiceGraph",
+      "serviceIdentifier": "cadbba34-9841-4046-98f9-00dcdc453604",
+      "environment": "Test"
+    },
+    "serviceResourceGroupDefinitions": [
+      {
+        "name": "ServiceGraph",
+        "serviceResourceDefinitions": [
+          {
+            "name": "ServiceGraph",
+            "composedOf": {
+              "arm": {
+                "templatePath": "Templates\\services.template.json",
+                "parametersPath": "Parameters\\services.template.parameters.json"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "serviceResourceGroups": [
+      {
+        "azureResourceGroupName": "playground-chdowney",
+        "location": "canadacentral",
+        "instanceOf": "ServiceGraph",
+        "azureSubscriptionId": "84ca48fe-c942-42e5-b492-d56681d058fa",
+        "scopeTags": [],
+        "serviceResources": [
+          {
+            "name": "ServiceGraph",
+            "instanceOf": "ServiceGraph"
+          }
+        ]
+      }
+    ]
+  }
+  

@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "ServiceGraph.ApiService\\ServiceGraph.ApiService.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "ServiceGraph.Web\\ServiceGraph.Web.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

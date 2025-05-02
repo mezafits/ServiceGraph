@@ -1,0 +1,51 @@
+﻿@using System.Security.Claims;
+@inject AuthenticationStateProvider AuthenticationStateProvider;
+
+<h3>UserClaims</h3>
+
+<table class="table table-striped table-bordered table-hover">
+    <thead>
+        <tr>
+            <th scope="col" style="width: 180px;">Type</th>
+            <th scope="col" style="width: 400px;">Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var claim in _claims)
+        {
+            <tr>
+                <td>@claim.Type</td>
+                <td>@claim.Value</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+
+@code {
+
+    protected string _authMessage;
+    protected IEnumerable<Claim> _claims = Enumerable.Empty<Claim>();
+    protected IEnumerable<string> _roles = Enumerable.Empty<string>();
+    private string[] printClaims = { "name", "preferred_username", "tid", "oid" };
+    protected override async Task OnInitializedAsync()
+    {
+        await GetClaimsPrincipalData();
+    }
+    private async Task GetClaimsPrincipalData()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            _authMessage = $"{user.Identity.Name} is authenticated.";
+            _claims = user.Claims;
+
+        }
+        else
+        {
+            _authMessage = "The user is NOT authenticated.";
+        }
+    }
+}

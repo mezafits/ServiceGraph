@@ -1,0 +1,240 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.34.44.8038",
+      "templateHash": "6598648145093165493"
+    }
+  },
+  "parameters": {
+    "namePrefix": {
+      "type": "string",
+      "defaultValue": "servicegraph",
+      "metadata": {
+        "description": "Name prefix for all resources"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "canadacentral",
+      "metadata": {
+        "description": "Location for all resources"
+      }
+    },
+    "cosmosDbAccountName": {
+      "type": "string",
+      "defaultValue": "[format('{0}cosmos', parameters('namePrefix'))]",
+      "metadata": {
+        "description": "Cosmos DB account name (must be globally unique)"
+      }
+    },
+    "cosmosDbDatabaseName": {
+      "type": "string",
+      "defaultValue": "appdb",
+      "metadata": {
+        "description": "Cosmos DB database name"
+      }
+    },
+    "cosmosDbContainerName": {
+      "type": "string",
+      "defaultValue": "servicegraph",
+      "metadata": {
+        "description": "Cosmos DB container name"
+      }
+    },
+    "appServicePlanSku": {
+      "type": "string",
+      "defaultValue": "S1",
+      "metadata": {
+        "description": "App Service plan SKU (e.g., \"S1\")"
+      }
+    },
+    "apiBinaries": {
+      "type": "string",
+      "metadata": {
+        "description": "Api Package for deployment"
+      }
+    },
+    "webBinaries": {
+      "type": "string",
+      "metadata": {
+        "description": "Web Package for deployment"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2022-03-01",
+      "name": "[format('{0}-asp', parameters('namePrefix'))]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[parameters('appServicePlanSku')]",
+        "tier": "Standard"
+      },
+      "properties": {
+        "reserved": false
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2022-03-01",
+      "name": "[format('{0}-api', parameters('namePrefix'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('{0}-asp', parameters('namePrefix')))]",
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "DB_ConnectionString",
+              "value": "[listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDbAccountName')), '2023-04-15').connectionStrings[0].connectionString]"
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', format('{0}-asp', parameters('namePrefix')))]",
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDbAccountName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2022-03-01",
+      "name": "[format('{0}-web', parameters('namePrefix'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('{0}-asp', parameters('namePrefix')))]",
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "ServiceClient__BaseAddress",
+              "value": "[format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('{0}-api', parameters('namePrefix'))), '2022-03-01').defaultHostName)]"
+            },
+            {
+              "name": "AzureAd__Domain",
+              "value": "microsoft.onmicrosoft.com"
+            },
+            {
+              "name": "AzureAd__TenantId",
+              "value": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+            },
+            {
+              "name": "AzureAd__ClientId",
+              "value": "e0d5bf42-ea8e-4a0e-9217-5b0ac0cb29eb"
+            },
+            {
+              "name": "AzureAd__CallbackPath",
+              "value": "/.auth/login/aad/callback"
+            },
+            {
+              "name": "AzureAd__Scopes",
+              "value": "access_as_user"
+            },
+            {
+              "name": "OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID",
+              "value": "db251f96-7897-41c0-b1af-0c4dbee6bdf2"
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('{0}-api', parameters('namePrefix')))]",
+        "[resourceId('Microsoft.Web/serverfarms', format('{0}-asp', parameters('namePrefix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts",
+      "apiVersion": "2023-04-15",
+      "name": "[parameters('cosmosDbAccountName')]",
+      "location": "[parameters('location')]",
+      "kind": "GlobalDocumentDB",
+      "properties": {
+        "databaseAccountOfferType": "Standard",
+        "locations": [
+          {
+            "locationName": "[parameters('location')]",
+            "failoverPriority": 0
+          }
+        ],
+        "consistencyPolicy": {
+          "defaultConsistencyLevel": "Session"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
+      "apiVersion": "2023-04-15",
+      "name": "[format('{0}/{1}', parameters('cosmosDbAccountName'), parameters('cosmosDbDatabaseName'))]",
+      "properties": {
+        "resource": {
+          "id": "[parameters('cosmosDbDatabaseName')]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDbAccountName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
+      "apiVersion": "2023-04-15",
+      "name": "[format('{0}/{1}/{2}', parameters('cosmosDbAccountName'), parameters('cosmosDbDatabaseName'), parameters('cosmosDbContainerName'))]",
+      "properties": {
+        "resource": {
+          "id": "[parameters('cosmosDbContainerName')]",
+          "partitionKey": {
+            "paths": [
+              "/id"
+            ],
+            "kind": "Hash"
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', parameters('cosmosDbAccountName'), parameters('cosmosDbDatabaseName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites/extensions",
+      "apiVersion": "2023-12-01",
+      "name": "[format('{0}/{1}', format('{0}-web', parameters('namePrefix')), 'ZipDeploy')]",
+      "properties": {
+        "packageUri": "[parameters('webBinaries')]",
+        "appOffline": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('{0}-web', parameters('namePrefix')))]"
+      ],
+      "metadata": {
+        "description": "MSDeploy packaged application to App Service Staging Slot"
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/extensions",
+      "apiVersion": "2023-12-01",
+      "name": "[format('{0}/{1}', format('{0}-api', parameters('namePrefix')), 'ZipDeploy')]",
+      "properties": {
+        "packageUri": "[parameters('apiBinaries')]",
+        "appOffline": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('{0}-api', parameters('namePrefix')))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "apiAppUrl": {
+      "type": "string",
+      "value": "[format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('{0}-api', parameters('namePrefix'))), '2022-03-01').defaultHostName)]"
+    },
+    "webAppUrl": {
+      "type": "string",
+      "value": "[format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('{0}-web', parameters('namePrefix'))), '2022-03-01').defaultHostName)]"
+    },
+    "cosmosDbEndpoint": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDbAccountName')), '2023-04-15').documentEndpoint]"
+    }
+  }
+}

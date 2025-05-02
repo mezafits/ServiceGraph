@@ -1,0 +1,350 @@
+﻿@inject ISyncService syncService;
+@inject ILogger<GraphView> Logger;
+@inject NavigationManager Navigation
+
+<style>
+    .leftToolBar {
+        display: flex;
+        width: 250px;
+    }
+
+    .meta-data {
+        border-left: 1px solid blue; /* 1px blue border on the left */
+        border-right: 1px solid blue; /* 1px  blue border on the right */
+    }
+
+</style>
+
+
+<div class="container-fluid">
+    <div id="usercontrols-row" class="row align-items-center mb-2 usercontrols">
+        <div class="col d-flex gap-2">
+            <ProjectMenu Complete="ProjectActionComplete"></ProjectMenu>
+        </div>
+        <div class="col d-flex gap-2">
+            <FluentLabel>Toggle Grid</FluentLabel>
+            <FluentCheckbox @onchange="ChangeOption"></FluentCheckbox>
+        </div>
+        <div class="col-auto">
+            <LoginDisplay />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-10" style="width:80%">
+            <div id="cy" style="width: 100%; height: 90vh;"></div>
+        </div>
+        <div class="col-2 meta-data" style="width:20%">
+            <MetaDataViewer @ref="metaDataViewer"></MetaDataViewer>
+        </div>
+    </div>
+
+    <EditNode @ref=editModal Complete="Refresh"></EditNode>
+    <EditEdge @ref=editEdgeModal Complete="Refresh"></EditEdge>
+    <IconPicker @ref=iconPicker IconSelectedEvent="Refresh"></IconPicker>
+</div>
+
+<script src="js/servicegraph-cytoscape.js"></script>
+
+
+
+@code {
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? ProjectId { get; set; }
+
+    EditNode editModal = new EditNode();
+    EditEdge editEdgeModal = new EditEdge();
+    MetaDataViewer metaDataViewer = new MetaDataViewer();
+    IconPicker iconPicker = new IconPicker();
+
+    [Inject]
+    IJSRuntime JS { get; set; }
+
+    private List<Project> projects = new List<Project>();
+    private Project selectedProject;
+
+    private DotNetObjectReference<GraphView>? objRef;
+
+    public List<SvgFileInfo> svgFiles { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        await base.OnInitializedAsync();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        Task.Run(async () =>
+       {
+           if (firstRender)
+           {
+               svgFiles = await syncService.GetIcons();
+               objRef = DotNetObjectReference.Create(this);
+               await JS.InvokeAsync<string>("SetIconCollection", svgFiles);
+               await JS.InvokeAsync<string>("SetDotNetObjectRef", objRef);
+           }
+
+           Refresh();
+           return;
+       });
+
+        base.OnAfterRender(firstRender);
+    }
+
+    [JSInvokable]
+    public async Task<string> RemoveServiceNode(ServiceNode id)
+    {
+        try
+        {
+            Logger.LogInformation($"Removing node {id}.");
+
+            await syncService.RemoveServiceNodeAsync(id);
+
+            Logger.LogInformation($"Remove successful for node {id}.");
+
+            Refresh();
+            return $"Remove successful for node {id}.";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"Error removing node {id}: {ex.Message}");
+            return Newtonsoft.Json.JsonConvert.SerializeObject(new { error = ex.Message });
+        }
+    }
+
+    [JSInvokable]
+    public async Task<string> RemoveEdge(Edge id)
+    {
+        try
+        {
+            Logger.LogInformation($"Removing node {id}.");
+
+            await syncService.RemoveEdgeAsync(id);
+
+            Logger.LogInformation($"Remove successful for node {id}.");
+
+            Refresh();
+            return $"Remove successful for node {id}.";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"Error removing node {id}: {ex.Message}");
+            return Newtonsoft.Json.JsonConvert.SerializeObject(new { error = ex.Message });
+        }
+    }
+
+    [JSInvokable]
+    public async Task ViewMetaData(string elementId, string elementType)
+    {
+        if (elementType == "edge")
+        {
+            var ele = selectedProject.edges.Where(x => x.Id == Guid.Parse(elementId)).SingleOrDefault();
+            await metaDataViewer.ViewMetaData(ele.Metadata);
+        }
+
+        if (elementType == "node")
+        {
+            var ele = selectedProject.nodes.Where(x => x.Id == Guid.Parse(elementId)).SingleOrDefault();
+            await metaDataViewer.ViewMetaData(ele.Metadata);
+        }
+
+    }
+
+    [JSInvokable]
+    public async Task<string> AddGroupNode(List<string> elementIds, float x = 0.0f, float y = 0.0f)
+    {
+        try
+        {
+
+            //identify node types. 
+            List<ServiceNode> nodes = new List<ServiceNode>();
+            bool groupNodeFound = false;
+            ServiceNode groupNode = new ServiceNode();
+
+            foreach(var element in elementIds)
+            {
+                var n = await syncService.GetServiceNodeByIdAsync(selectedProject.Id, Guid.Parse(element));
+                if(n.NodeType == "group")
+                {
+                    groupNodeFound = true;
+                    groupNode = n;
+                }
+                nodes.Add(n);
+            }
+
+            if (!groupNodeFound)
+            {
+                groupNode.Name = $"Group {selectedProject.nodes.Count + 1}";
+                groupNode.Id = Guid.NewGuid();
+                groupNode.ParentId = Guid.Empty;
+                groupNode.NodeType = "group";
+                groupNode.ProjectId = selectedProject.Id;
+                groupNode.IconId = null;
+                groupNode.Xpos = x;
+                groupNode.Ypos = y;
+                await syncService.UpsertServiceNodeAsync(groupNode);
+            }
+
+            foreach (var node in elementIds)
+            {
+                if (node != groupNode.Id.ToString())
+                {
+                    await syncService.AddServiceNodeToGroupAsync(selectedProject.Id, groupNode.Id, Guid.Parse(node));
+                }
+            }
+
+
+
+            await syncService.SyncAsync(selectedProject);
+
+            Logger.LogInformation($"add successful for node {groupNode.Id}.");
+            Refresh();
+            return $"add successful for node {groupNode.Id}.";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"Error adding node: {ex.Message}");
+            return Newtonsoft.Json.JsonConvert.SerializeObject(new { error = ex.Message });
+        }
+    }
+
+    [JSInvokable]
+    public async Task<string> AddServiceNode(float x, float y)
+    {
+        try
+        {
+
+
+            var serviceNode = new ServiceNode();
+            serviceNode.Name = $"New Node {selectedProject.nodes.Count + 1}";
+
+            serviceNode.Id = Guid.NewGuid();
+            serviceNode.IconId = "10040";
+            serviceNode.Xpos = x;
+            serviceNode.Ypos = y;
+            serviceNode.ProjectId = selectedProject.Id;
+            serviceNode.ParentId = serviceNode.Id;
+            await syncService.UpsertServiceNodeAsync(serviceNode);
+            var results = await syncService.GetServiceNodeAsync(serviceNode);
+            var serializedResults = Newtonsoft.Json.JsonConvert.SerializeObject(results);
+
+            await syncService.SyncAsync(selectedProject);
+
+            Logger.LogInformation($"add successful for node {serviceNode.Id}.");
+            Refresh();
+            return serializedResults;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"Error adding node: {ex.Message}");
+            return Newtonsoft.Json.JsonConvert.SerializeObject(new { error = ex.Message });
+        }
+    }
+
+    [JSInvokable]
+    public async Task<string> UpdateServiceNodePosition(ServiceNode node, float x, float y)
+    {
+        try
+        {
+            Logger.LogInformation($"Updating position for node {node.Id} to ({x}, {y}).");
+
+            var serviceNode = await syncService.GetServiceNodeAsync(node);
+            serviceNode.Xpos = x;
+            serviceNode.Ypos = y;
+
+            await syncService.UpsertServiceNodeAsync(serviceNode);
+            await syncService.SyncAsync(selectedProject);
+
+            Logger.LogInformation($"Update successful for node {node.Id}.");
+
+            return "Success";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"Error updating position for node {node.Id}: {ex.Message}");
+            return Newtonsoft.Json.JsonConvert.SerializeObject(new { error = ex.Message });
+        }
+    }
+
+    [JSInvokable]
+    public async Task<string> GetEdgeById(Edge edge)
+    {
+        var results = await syncService.GetEdgeAsync(edge);
+        editEdgeModal.SetEdge(results);
+        var tp = Newtonsoft.Json.JsonConvert.SerializeObject(results);
+        return tp;
+    }
+
+    [JSInvokable]
+    public async Task<string> GetServiceNodeById(ServiceNode serviceNode)
+    {
+        var results = await syncService.GetServiceNodeAsync(serviceNode);
+        var tp = Newtonsoft.Json.JsonConvert.SerializeObject(results);
+        editModal.SetServiceNode(results);
+        iconPicker.SetServiceNode(results);
+        return tp;
+    }
+
+    [JSInvokable]
+    public async Task AddEdge(string sourceId, string targetId)
+    {
+        try
+        {
+            // Create a new edge model
+            var newEdge = new Edge { ProjectId = selectedProject.Id, Id = Guid.NewGuid(), Source = sourceId, Destination = targetId };
+            newEdge.Name = $"New Edge {selectedProject.edges.Count + 1}";
+            await syncService.UpsertEdgeAsync(newEdge);
+            Refresh();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error adding edge");
+            // Handle errors
+        }
+    }
+
+
+    public void ChangeOption()
+    {
+        Task.Run(async ()=>{ 
+            await JS.InvokeAsync<string>("ChangeOption","Grid","Toggle");
+        });
+    }
+
+    public void ProjectActionComplete()
+    { Task.Run(async () =>
+        {
+            selectedProject = await syncService.GetSelectedProjectAsync();
+            var corrected_uri = Navigation.GetUriWithQueryParameter("ProjectId", selectedProject.Id.ToString());
+            if (corrected_uri != Navigation.Uri)
+            {
+                Navigation.NavigateTo(corrected_uri);
+            }
+        });
+    }
+    public void Refresh()
+    {
+        Task.Run(async () =>
+        {
+            if (Guid.TryParse(ProjectId, out Guid result))
+            {
+                await syncService.SetSelectedProjectAsync(result.ToString());
+            }
+            projects = await syncService.GetProjectsAsync();
+            if (projects != null)
+            {
+                selectedProject = await syncService.GetSelectedProjectAsync();
+                 
+                if (selectedProject != null)
+                {
+                    await JS.InvokeAsync<string>("refresh", selectedProject);
+                }
+            }
+        });
+
+        Console.WriteLine("Refreshing Service State");
+    }
+
+}

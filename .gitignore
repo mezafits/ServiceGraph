@@ -1,0 +1,15 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/ServiceGraph.ApiService/bin/Debug/net8.0
+/ServiceGraph.ApiService/obj
+/ServiceGraph.Web/bin/Debug/net8.0
+/ServiceGraph.Web/obj
+/ServiceGraph.ApiService/bin/Release/net8.0
+/ServiceGraph.Common/bin
+/ServiceGraph.Common/obj
+/ServiceGraph.Web/bin/Release/net8.0
+/Deployment/bin/apibin.zip
+/Deployment/bin/webbin.zip

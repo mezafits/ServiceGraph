@@ -1,0 +1,35 @@
+﻿@page "/"
+
+@attribute [Authorize]
+@inject ServiceClient serviceClient;
+@inject AuthenticationStateProvider AuthenticationStateProvider;
+@inject NavigationManager Navigation
+
+
+<PageTitle>Service Graph</PageTitle>
+<AuthorizeView>
+<Authorized>
+        <GraphView ProjectId="@ProjectId" @rendermode="InteractiveServer"></GraphView>
+    </Authorized>
+    <NotAuthorized>
+        <ServiceGraph.Web.Components.Layout.LoginDisplay></ServiceGraph.Web.Components.Layout.LoginDisplay>
+    </NotAuthorized>
+</AuthorizeView>
+
+ 
+@code 
+{
+
+    public string ProjectId { get; set; }
+    AuthenticationState authState;
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+
+        ProjectId = query["ProjectId"];
+
+
+        authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+    }
+}

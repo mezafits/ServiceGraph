@@ -1,0 +1,236 @@
+﻿@inject ISyncService syncService;
+@inject IJSRuntime JS;
+
+@* These models work by using the syncService to make changes, and then when the modal dialog closes a refresh is called that will update the view state.  *@
+
+<style>
+    .metadata-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .metadata-card {
+        margin-top: 10px;
+        background: #f5f5f5;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .metadata-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+    }
+
+    .metadata-tag {
+        font-size: 1.1rem;
+    }
+
+    .metadata-type {
+        background-color: #d0e7ff;
+        color: #0078d4;
+        border-radius: 4px;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .metadata-content {
+        font-size: 0.95rem;
+        color: #333;
+    }
+
+    .metadata-link {
+        color: #0066cc;
+        text-decoration: none;
+        word-break: break-all;
+    }
+
+    .metadata-code {
+        background-color: #eaeaea;
+        padding: 0.5rem;
+        border-radius: 4px;
+        font-family: Consolas, monospace;
+        overflow-x: auto;
+    }
+
+    .quick-add-container {
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        background-color: #f0f8ff;
+        border-radius: 8px;
+        border: 1px solid #d0e7ff;
+    }
+
+    .quick-add-title {
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        color: #0078d4;
+    }
+
+    .quick-add-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .quick-add-btn {
+        background-color: #e6f2ff;
+        border: 1px solid #bdd9ff;
+        color: #0066cc;
+        border-radius: 4px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .quick-add-btn:hover {
+            background-color: #d0e7ff;
+            border-color: #0078d4;
+        }
+</style>
+
+<div class="modal fade" id="editEdgeModal" tabindex="-1" role="dialog" aria-labelledby="myModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="myModalTitle">Edit Edge</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="@Edge">
+                    <div class="form-group">
+                        <label for="edgeName">Edge Name</label>
+                        <InputText id="edgeName" class="form-control" @bind-Value="Edge.Name" />
+                    </div>
+                    <div class="form-group">
+                        <label>Metadata</label>
+                        <br />
+
+                        <!-- Quick Add Metadata Section -->
+                        <div class="quick-add-container">
+                            <div class="quick-add-title">Quick Add Common Metadata</div>
+                            <div class="quick-add-buttons">
+                                @foreach (var template in metadataTemplates)
+                                {
+                                    <button type="button" class="quick-add-btn" @onclick="() => AddMetadataTemplate(template)">
+                                        @template.TagName
+                                    </button>
+                                }
+                            </div>
+                        </div>
+
+                        @foreach (var metadata in Edge.Metadata)
+                        {
+                            <div class="metadata-container">
+                                <div class="metadata-card">
+                                    <div class="form-group">
+                                        <label>Tag Type</label>
+                                        <InputSelect class="form-control mb-2" @bind-Value="metadata.TagType">
+                                            <option value="Link">Link</option>
+                                            <option value="Text">Text</option>
+                                            <option value="Query">Query</option>
+                                        </InputSelect>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Tag Name</label>
+                                        <InputText class="form-control mb-2" @bind-Value="metadata.TagName" />
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Tag Value</label>
+                                        <InputText class="form-control mb-2" @bind-Value="metadata.TagValue" />
+                                    </div>
+
+                                    <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => RemoveMetadataField(metadata)">
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        }
+
+                        <button type="button" class="btn btn-secondary btn-sm" @onclick="AddMetadataField">Add More Metadata</button>
+                    </div>
+                </EditForm>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="SaveEdge" data-dismiss="modal">Save Changes</button>
+                <button type="button" class="btn btn-secondary" @onclick="@(() => Complete.InvokeAsync("Canceled"))" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<string> Complete { get; set; }
+
+    private Edge Edge = new Edge { Metadata = new List<Metadata>() };
+
+    List<SvgFileInfo> icons = new List<SvgFileInfo>();
+
+    // Define metadata templates for quick-add functionality
+    private List<Metadata> metadataTemplates = new List<Metadata>
+    {
+        new Metadata { Id = Guid.Empty, TagType = "Text", TagName = "Geneva Logs Account", TagValue = "" },
+        new Metadata { Id = Guid.Empty, TagType = "Text", TagName = "Geneva Metrics Account", TagValue = "" },
+        new Metadata { Id = Guid.Empty, TagType = "Text", TagName = "DGrep Namespace", TagValue = "" }
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            //place holder for code that should only execute once.
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public void SetEdge(Edge edge)
+    {
+        Edge = edge;
+        StateHasChanged();
+    }
+
+    private async Task SaveEdge()
+    {
+        await syncService.UpsertEdgeAsync(Edge);
+        await Complete.InvokeAsync("Saved");
+    }
+
+    private void AddMetadataField()
+    {
+        Edge.Metadata.Add(new Metadata() { Id = Guid.NewGuid(), TagName = "", TagValue = "" });
+    }
+
+    private void RemoveMetadataField(Metadata metadata)
+    {
+        Edge.Metadata.Remove(metadata);
+    }
+
+    private void AddMetadataTemplate(Metadata template)
+    {
+        // Check if this template already exists to avoid duplicates
+        bool alreadyExists = Edge.Metadata.Any(m =>
+            m.TagType == template.TagType &&
+            m.TagName == template.TagName);
+
+        if (!alreadyExists)
+        {
+            Edge.Metadata.Add(new Metadata
+                {
+                    Id = Guid.NewGuid(),
+                    TagType = template.TagType,
+                    TagName = template.TagName,
+                    TagValue = template.TagValue
+                });
+        }
+    }
+}

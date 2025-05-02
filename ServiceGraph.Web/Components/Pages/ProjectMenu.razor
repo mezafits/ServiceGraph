@@ -1,0 +1,337 @@
+﻿ 
+@inject ISyncService syncService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
+@inject ServiceClient serviceClient;
+@using Newtonsoft.Json;
+ 
+
+<script>
+    function saveAsFile(filename, bytesBase64) {
+        var link = document.createElement('a');
+        link.download = filename;
+        link.href = "data:application/octet-stream;base64," + bytesBase64;
+        document.body.appendChild(link); // Needed for Firefox
+        link.click();
+        document.body.removeChild(link);
+    }
+
+</script>
+
+<div class="project-selector-container">
+    <div class="project-selector hex">
+        <div class="project-dropdown">
+            <FluentSelect Multiple="false"   TOption="string" ValueChanged="@HandleSelectionChanged">
+                @foreach (var p in projects)
+                {
+                    <FluentOption Selected="@(p.Id.ToString() == selectedProjectId)" Value="@p.Id.ToString()">@p.ProjectName</FluentOption>
+                }
+            </FluentSelect>
+        </div>
+        <div class="project-actions">
+
+            <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="ShowEditModal" Title="Edit Project" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.Edit())" />
+
+            <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="ShowCreateModal" Title="Create New Project" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.AddCircle())" />
+
+            <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="ShowImportModal" Title="Import Project" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.ArrowImport())" />
+
+            <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="exportProject" Title="Export Project" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.ArrowExport())" />
+
+       @*      <button type="button" class="btn btn-sm btn-outline-primary" @onclick="ShowEditModal" title="Edit Project">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-success" @onclick="ShowCreateModal" title="Create New Project">
+                <i class="fas fa-plus"></i> New
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-success" @onclick="ShowImportModal" title="Import Project">
+                Import
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-success" @onclick="exportProject" title="Export Project">
+                Export
+            </button> *@
+        </div>
+    </div>
+</div>
+
+
+<!-- Import Project Modal -->
+<div class="modal fade" id="ImportProjectModal" tabindex="-1" role="dialog" aria-labelledby="idcmt" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="idcmt">Select a Project File</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <InputFile type="file" multiple OnChange="@HandleSelectedFile" />
+            </div>
+            <div class="modal-footer">
+                <button data-dismiss="modal" @onclick="@(() => Complete.InvokeAsync("Saved"))">Complete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Create New Project Modal -->
+<div class="modal fade" id="createProjectModal" tabindex="-1" role="dialog" aria-labelledby="createProjectModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content project-modal-content">
+            <div class="modal-header project-modal-header">
+                <h5 class="modal-title" id="createProjectModalTitle">Create New Project</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body project-modal-body">
+                <EditForm Model="@newProject" OnValidSubmit="CreateProject">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div class="form-group">
+                        <label for="newProjectName">Project Name</label>
+                        <InputText id="newProjectName" class="form-control project-input" @bind-Value="newProject.ProjectName" />
+                        <ValidationMessage For="@(() => newProject.ProjectName)" />
+                    </div>
+                </EditForm>
+            </div>
+            <div class="modal-footer project-modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="CreateProject">Create Project</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Edit Project Modal -->
+<div class="modal fade" id="editProjectModal" tabindex="-1" role="dialog" aria-labelledby="editProjectModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content project-modal-content">
+            <div class="modal-header project-modal-header">
+                <h5 class="modal-title" id="editProjectModalTitle">Edit Project</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body project-modal-body">
+                @if (selectedProject != null)
+                {
+                    <EditForm Model="@selectedProject" OnValidSubmit="SaveProject">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+                        <div class="form-group">
+                            <label for="projectName">Project Name</label>
+                            <InputText id="projectName" class="form-control project-input" @bind-Value="selectedProject.ProjectName" />
+                            <ValidationMessage For="@(() => selectedProject.ProjectName)" />
+                        </div>
+                        <!-- You can add more fields here as needed -->
+                    </EditForm>
+                }
+            </div>
+            <div class="modal-footer project-modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="SaveProject">Save Changes</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<string> Complete { get; set; }
+    List<Project> projects = new List<Project>();
+    private string selectedProjectId;
+    private Project selectedProject;
+    private Project newProject = new Project
+        {
+            Id = Guid.NewGuid(),
+            ProjectName = "",
+            Owners = new List<string>(),
+            Readers = new List<string>(),
+            nodes = new List<ServiceNode>(),
+            edges = new List<Edge>()
+        };
+    private AuthenticationState authState;
+    private Project dc { get; set; }
+    private async Task ShowEditModal()
+    {
+        if (Guid.TryParse(selectedProjectId, out Guid projectId) && projectId != Guid.Empty)
+        {
+            selectedProject = projects.FirstOrDefault(p => p.Id.ToString() == selectedProjectId);
+            if (selectedProject != null)
+            {
+                await JSRuntime.InvokeVoidAsync("showModal", "editProjectModal");
+            }
+        }
+    }
+    private async Task ShowCreateModal()
+    {
+
+
+        var nodes = new List<ServiceNode>();
+        var Id = Guid.NewGuid();
+        var node = new ServiceNode()
+            {
+                Id = Id,
+                ProjectId = newProject.Id,
+                ParentId = Id,
+                Name = $"New Node",
+                IconId = "00046",
+                Xpos = 0,
+                Ypos = 0,
+                NodeType = "node"
+            };
+        newProject.nodes.Add(node);
+
+        // Show the create new project modal
+        await JSRuntime.InvokeVoidAsync("showModal", "createProjectModal");
+    }
+
+    private async Task ShowImportModal()
+    {
+        await JSRuntime.InvokeVoidAsync("showModal", "ImportProjectModal");
+    }
+    private async Task HandleSelectionChanged(string newValue)
+    {
+        // Update the selectedProjectId immediately
+        selectedProjectId = newValue;
+
+        if (Guid.TryParse(selectedProjectId, out Guid projectId))
+        {
+            // Load the selected project
+            selectedProject = projects.FirstOrDefault(p => p.Id.ToString() == selectedProjectId);
+            if (selectedProject != null)
+            {
+                await syncService.SetSelectedProjectAsync(projectId.ToString());
+                await Complete.InvokeAsync("Refresh");
+            }
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task SelectionChangedAsync()
+    {
+        if (Guid.TryParse(selectedProjectId, out Guid projectId))
+        {
+            // Load the selected project
+            selectedProject = projects.FirstOrDefault(p => p.Id.ToString() == selectedProjectId);
+            if (selectedProject != null)
+            {
+                await syncService.SetSelectedProjectAsync(projectId.ToString());
+                await Complete.InvokeAsync("Refresh");
+            }
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task CreateProject()
+    {
+        if (string.IsNullOrWhiteSpace(newProject.ProjectName))
+        {
+            // Add validation logic
+            return;
+        }
+
+        // Add current user to owners
+        var username = authState.User?.Identity?.Name;
+        if (!string.IsNullOrEmpty(username) && !newProject.Owners.Contains(username))
+        {
+            newProject.Owners.Add(username);
+        }
+        
+        await syncService.UpsertProjectAsync(newProject);
+        // Refresh the projects list
+        
+        projects = await syncService.GetProjectsAsync();
+        
+
+        // Select the newly created project
+        selectedProjectId = newProject.Id.ToString();
+        await syncService.SetSelectedProjectAsync(selectedProjectId);
+
+        // Close the modal
+        await JSRuntime.InvokeVoidAsync("closeModal", "createProjectModal");
+
+        await Complete.InvokeAsync("Created");
+    }
+    private async Task SaveProject()
+    {
+        if (selectedProject != null)
+        {
+            await syncService.UpsertProjectAsync(selectedProject);
+
+            // Refresh the projects list
+            var username = authState.User?.Identity?.Name;
+            
+            projects = await syncService.GetProjectsAsync();
+            
+
+            // Close the modal
+            await JSRuntime.InvokeVoidAsync("closeModal", "editProjectModal");
+
+            await Complete.InvokeAsync("Updated");
+        }
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var username = authState.User?.Identity?.Name;
+        if (!string.IsNullOrEmpty(username))
+        {
+            projects = await syncService.GetProjectsAsync();
+            if (projects.Any())
+            {
+                selectedProject = await syncService.GetSelectedProjectAsync();
+                selectedProjectId = selectedProject.Id.ToString();
+              
+            }
+        }
+    }
+    // Add this to your _Host.cshtml or your JavaScript file
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                window.showModal = function(modalId) {
+                    $('#' + modalId).modal('show');
+                };
+
+                window.closeModal = function(modalId) {
+                    $('#' + modalId).modal('hide');
+                };
+            ");
+        }
+    }
+
+    private async Task HandleSelectedFile(InputFileChangeEventArgs e)
+    {
+
+        var selectedFile = e.File;
+
+        if (selectedFile != null)
+        {
+            // Process the file here
+            // For example, you can read the file stream
+            using var stream = selectedFile.OpenReadStream();
+            using var reader = new StreamReader(stream);
+            var fileContent = await reader.ReadToEndAsync();
+
+            dc = JsonConvert.DeserializeObject<Project>(fileContent);
+            await serviceClient.ImportProjectAsync(dc);
+            // You can process the fileContent as needed
+            await Complete.InvokeAsync("Imported");
+        }
+    }
+
+    private async Task exportProject()
+    {
+        var selectedProject = await syncService.GetSelectedProjectAsync();
+        var httpResponse = await serviceClient.ExportProjectAsync(selectedProject.Id.ToString());
+        using var stream = await httpResponse.Content.ReadAsStreamAsync();
+
+        // Code to trigger the file download in the browser
+        await using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        var content = memoryStream.ToArray();
+        var filename = "Project.json";
+        await JSRuntime.InvokeVoidAsync("saveAsFile", filename, Convert.ToBase64String(content));
+    }
+}
+

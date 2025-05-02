@@ -1,0 +1,183 @@
+﻿@using Newtonsoft.Json
+@using System.Text.RegularExpressions
+@using System.Net
+@inject IJSRuntime JS
+@inject ISyncService syncService;
+
+<div class="modal fade" id="iconPickerModal" tabindex="-1" role="dialog" aria-labelledby="myModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="myModalTitle">Icon Picker</h5>
+            </div>
+            <div class="modal-body">
+                    <div class="form-group">
+                        <label for="serviceName">Search</label>
+                    <input type="text" @bind="searchTerm"  @onkeyup="FilterIcons" placeholder="Search icons..." />
+                    </div>
+                    <div class="form-group">
+                        <div class="icon-gridd">
+                            @foreach (var icon in filteredIcons.Take(100))
+                            {    <!-- Tile Container -->
+                                <div class="icon-tile">
+                                    <!-- Icon with Rounded Corners -->
+                                    <div class="icon-image icon @(isSelected(icon))" @onclick="() => SelectIcon(icon)">
+                                        @((MarkupString)MakeIcon(icon))
+                                    </div>
+                                    <!-- Name with Truncation -->
+                                    <div class="icon-name">@icon.Name</div>
+                                </div>
+                            }
+
+
+                           
+                        </div>
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="@(() => SaveServiceNode())" data-dismiss="modal">Select</button>
+                <button type="button" class="btn btn-secondary"  data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .icon-selected {
+        border-style: solid; 
+        border-width: 1px;
+        border-color: #007bff;
+    }
+    .icon-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+        grid-gap: 10px;
+    }
+    .icon {
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+    }
+    .icon svg {
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Tile container with slight spacing */
+.icon-tile {
+    display: inline-block;
+    text-align: center;
+    margin: 10px;
+    cursor: pointer;
+}
+
+/* Rounded corners for the icon container */
+.icon-image {
+    width: 100px;  /* or any other dimensions */
+    height: 100px;
+    border-radius: 10px;  /* Rounded corners */
+    overflow: hidden;  /* Ensures the content also gets rounded corners */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f0f0; /* Example background */
+}
+
+/* Truncating text for the name */
+.icon-name {
+    width: 100px;  /* Align with icon width */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.9em;  /* Smaller text */
+}
+
+
+</style>
+ 
+
+@code {
+    private string searchTerm = "";
+    private IEnumerable<SvgFileInfo> allIcons; // This should be populated with your icons
+    private IEnumerable<SvgFileInfo> filteredIcons = new List<SvgFileInfo>();
+
+    private ServiceNode serviceNode;
+    private SvgFileInfo  selectedIcon;
+    
+
+    [Parameter] public EventCallback<SvgFileInfo> IconSelectedEvent { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load your icons. This could be from an API call or static data
+        allIcons = await syncService.GetIcons(); // Assuming you have a service client that returns your icons
+        filteredIcons = allIcons.Take(20); // Start with all icons
+    }
+
+    private string isSelected(SvgFileInfo icon)
+    {
+        if (icon.Id == selectedIcon?.Id)
+        {
+            return "icon-selected";
+        }
+        return "";
+    }
+
+    private void FilterIcons()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredIcons = allIcons;
+        }
+        else
+        {
+            filteredIcons = allIcons.Where(icon =>
+                                icon.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                                icon.Subtype.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                   .OrderByDescending(icon => icon.Name.StartsWith(searchTerm, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+    public void SetServiceNode(ServiceNode node)
+    {
+        serviceNode = node;
+        StateHasChanged();
+    }
+    private string MakeIcon(SvgFileInfo icon)
+    {
+        string newWidth = "40";
+        string newHeight = "40";
+        Regex svgTagRegex = new Regex(@"<svg[^>]+>");
+
+        var svgString = svgTagRegex.Replace(icon.Content, match =>
+        {
+            string svgTag = match.Value;
+            svgTag = Regex.Replace(svgTag, @"width=""\d+""", $"width=\"{newWidth}\"");
+            svgTag = Regex.Replace(svgTag, @"height=""\d+""", $"height=\"{newHeight}\"");
+            return svgTag;
+        });
+
+        // string encodedSvg = WebUtility.UrlEncode(svgString);
+        string dataUrl = $"data:image/svg+xml;charset=utf-8,{svgString}";
+        return icon.Content;
+        //return dataUrl;
+    }
+    private void SelectIcon(SvgFileInfo icon)
+    {
+        Console.WriteLine($"Selected icon: {icon.Name}");
+        selectedIcon = icon;
+        serviceNode.IconId = icon.Id;
+
+    }
+    private async Task SaveServiceNode()
+    {
+        await syncService.UpsertServiceNodeAsync(serviceNode);
+        CompleteIconChange();
+    }
+    private void CompleteIconChange()
+    {
+        IconSelectedEvent.InvokeAsync(selectedIcon);
+    }
+
+    // Define your icon object class if it's not already defined
+     // Other properties as needed
+    }
+

@@ -1,0 +1,43 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject AuthenticationStateProvider AuthenticationStateProvider;
+@inject NavigationManager Navigation
+
+
+<div class="navbar-nav d-flex align-items-center">
+    @if (authState.User.Identity.IsAuthenticated)
+    {
+        <div class="nav-item d-flex align-items-center gap-2">
+            <span class="navbar-text text-dark">Hello, @authState.User.Identity.Name</span>
+            <button class="btn btn-link p-0 text-primary" @onclick="()=> Logout()">Sign out</button>
+        </div>
+    }
+    else
+    {
+        <div class="nav-item">
+            <button class="btn btn-apple ui-button" @onclick="()=> Login()">Sign in</button>
+        </div>
+    }
+</div>
+
+
+@code {
+    private AuthenticationState authState;
+
+    protected override async Task OnInitializedAsync()
+    {
+        authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        await base.OnInitializedAsync();
+    }
+
+    private void Logout()
+    {
+        Navigation.NavigateToLogout("/MicrosoftIdentity/Account/SignOut");
+    }
+
+    private void Login()
+    {
+        Navigation.NavigateToLogin("/MicrosoftIdentity/Account/SignIn");
+    }
+
+}
