@@ -20,17 +20,26 @@
 
   <Target Name="ZipOutputPath" AfterTargets="Build">
     <Message Text="Creating .zip for $(SolutionDir)" Importance="High" />
-    <ZipDirectory
-    SourceDirectory="$(SolutionDir)\ServiceGraph.Web\bin\Release\net8.0"
-    DestinationFile="$(SolutionDir)\Deployment\bin\webbin.zip"
-    Overwrite ="true"/>
+    <ZipDirectory SourceDirectory="$(SolutionDir)\ServiceGraph.Web\bin\Release\net8.0" DestinationFile="$(SolutionDir)\Deployment\bin\webbin.zip" Overwrite="true" />
   </Target>
   
   <ItemGroup>
     <Content Update="Components\Pages\EditEdge.razor">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
+    <Content Update="wwwroot\app.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\favicon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Update="wwwroot\js\cytoscape-cxtmenu.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\cytoscape.js-grid.guide.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\servicegraph-cytoscape.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

@@ -22,6 +22,11 @@ param apiBinaries string
 @description('Web Package for deployment')
 param webBinaries string
 
+@description('App Insights Name')
+param appInsightsName string = 'cjdSvgAppInsightsIn'
+
+@description('App Insights Name')
+param workspaceName string = 'cjdSvgAIWorkspsace'
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: '${namePrefix}-asp'
@@ -43,9 +48,22 @@ resource apiAppService 'Microsoft.Web/sites@2022-03-01' = {
     siteConfig: {
       appSettings: [
         {
-          name: 'DB_ConnectionString'
+          name: 'DB__ConnectionString'
           value: cosmosDbAccount.listConnectionStrings().connectionStrings[0].connectionString
         }
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: appInsights.properties.InstrumentationKey
+        }
+        {
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: appInsights.properties.ConnectionString
+        }
+        {
+          name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
+          value: '~3'
+        }
+
       ]
     }
   }
@@ -53,6 +71,29 @@ resource apiAppService 'Microsoft.Web/sites@2022-03-01' = {
     appServicePlan
     cosmosDbAccount
   ]
+}
+
+// Resource: Log Analytics Workspace (for workspace-based Application Insights)
+resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
+  name: workspaceName
+  location: location
+  properties: {
+    retentionInDays: 30
+    sku: {
+      name: 'PerGB2018'
+    }
+  }
+}
+
+// Resource: Application Insights
+resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: appInsightsName
+  location: location
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    WorkspaceResourceId: logAnalytics.id
+  }
 }
 
 resource webAppService 'Microsoft.Web/sites@2022-03-01' = {
@@ -89,6 +130,18 @@ resource webAppService 'Microsoft.Web/sites@2022-03-01' = {
         {
           name:'OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID'
           value:'db251f96-7897-41c0-b1af-0c4dbee6bdf2'
+        }
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: appInsights.properties.InstrumentationKey
+        }
+        {
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: appInsights.properties.ConnectionString
+        }
+        {
+          name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
+          value: '~3'
         }
       ]
     }

@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.34.44.8038",
-      "templateHash": "6598648145093165493"
+      "version": "0.35.1.17967",
+      "templateHash": "15839605825489584480"
     }
   },
   "parameters": {
@@ -62,6 +62,20 @@
       "metadata": {
         "description": "Web Package for deployment"
       }
+    },
+    "appInsightsName": {
+      "type": "string",
+      "defaultValue": "cjdSvgAppInsightsIn",
+      "metadata": {
+        "description": "App Insights Name"
+      }
+    },
+    "workspaceName": {
+      "type": "string",
+      "defaultValue": "cjdSvgAIWorkspsace",
+      "metadata": {
+        "description": "App Insights Name"
+      }
     }
   },
   "resources": [
@@ -88,15 +102,54 @@
         "siteConfig": {
           "appSettings": [
             {
-              "name": "DB_ConnectionString",
+              "name": "DB__ConnectionString",
               "value": "[listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDbAccountName')), '2023-04-15').connectionStrings[0].connectionString]"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), '2020-02-02').InstrumentationKey]"
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+              "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), '2020-02-02').ConnectionString]"
+            },
+            {
+              "name": "ApplicationInsightsAgent_EXTENSION_VERSION",
+              "value": "~3"
             }
           ]
         }
       },
       "dependsOn": [
+        "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]",
         "[resourceId('Microsoft.Web/serverfarms', format('{0}-asp', parameters('namePrefix')))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDbAccountName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "apiVersion": "2021-06-01",
+      "name": "[parameters('workspaceName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "retentionInDays": 30,
+        "sku": {
+          "name": "PerGB2018"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[parameters('appInsightsName')]",
+      "location": "[parameters('location')]",
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web",
+        "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
       ]
     },
     {
@@ -135,12 +188,25 @@
             {
               "name": "OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID",
               "value": "db251f96-7897-41c0-b1af-0c4dbee6bdf2"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), '2020-02-02').InstrumentationKey]"
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+              "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), '2020-02-02').ConnectionString]"
+            },
+            {
+              "name": "ApplicationInsightsAgent_EXTENSION_VERSION",
+              "value": "~3"
             }
           ]
         }
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', format('{0}-api', parameters('namePrefix')))]",
+        "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]",
         "[resourceId('Microsoft.Web/serverfarms', format('{0}-asp', parameters('namePrefix')))]"
       ]
     },
