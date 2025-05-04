@@ -15,13 +15,13 @@
     <PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="16.205.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
-  <Target Name="ZipOutputPath" AfterTargets="Build">
+  <!--<Target Name="ZipOutputPath" AfterTargets="Build">
     <Message Text="Creating .zip for $(SolutionDir)" Importance="High" />
     <ZipDirectory
     SourceDirectory="$(SolutionDir)\ServiceGraph.ApiService\bin\Release\net8.0"
     DestinationFile="$(SolutionDir)\Deployment\bin\apibin.zip"
     Overwrite ="true"/>
-  </Target>
+  </Target>-->
   <ItemGroup>
     <None Update="Icons\ai + machine learning\00028-icon-service-Batch-AI.svg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

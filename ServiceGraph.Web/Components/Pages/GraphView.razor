@@ -30,12 +30,16 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-10" style="width:80%">
+        <FluentSplitter Orientation="@Orientation.Horizontal"   BarSize="6" Panel1MinSize="15%" Panel2Size="200px" Panel2MinSize="100px">
+        <Panel1>
             <div id="cy" style="width: 100%; height: 90vh;"></div>
-        </div>
-        <div class="col-2 meta-data" style="width:20%">
-            <MetaDataViewer @ref="metaDataViewer"></MetaDataViewer>
-        </div>
+        </Panel1>
+            <Panel2>
+                
+                    <MetaDataViewer @ref="metaDataViewer"></MetaDataViewer>
+                
+            </Panel2>
+        </FluentSplitter>
     </div>
 
     <EditNode @ref=editModal Complete="Refresh"></EditNode>
