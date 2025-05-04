@@ -15,33 +15,29 @@
 
 </style>
 
-
 <div class="container-fluid">
     <div id="usercontrols-row" class="row align-items-center mb-2 usercontrols">
-        <div class="col d-flex gap-2">
+        <div class="col d-flex gap-1">
             <ProjectMenu Complete="ProjectActionComplete"></ProjectMenu>
         </div>
-        <div class="col d-flex gap-2">
-            <FluentLabel>Toggle Grid</FluentLabel>
-            <FluentCheckbox @onchange="ChangeOption"></FluentCheckbox>
+        <div class="col d-flex gap-1">
+            <GridControlMenu Complete="HandleGridControlComplete"></GridControlMenu>
         </div>
         <div class="col-auto">
             <LoginDisplay />
         </div>
     </div>
     <div class="row">
-        <FluentSplitter Orientation="@Orientation.Horizontal"   BarSize="6" Panel1MinSize="15%" Panel2Size="200px" Panel2MinSize="100px">
+        <FluentSplitter Orientation="@Orientation.Horizontal"   BarSize="6" Panel1MinSize="25%" Panel2Size="30%" Panel2MinSize="30%">
         <Panel1>
             <div id="cy" style="width: 100%; height: 90vh;"></div>
         </Panel1>
             <Panel2>
-                
                     <MetaDataViewer @ref="metaDataViewer"></MetaDataViewer>
-                
             </Panel2>
         </FluentSplitter>
     </div>
-
+   
     <EditNode @ref=editModal Complete="Refresh"></EditNode>
     <EditEdge @ref=editEdgeModal Complete="Refresh"></EditEdge>
     <IconPicker @ref=iconPicker IconSelectedEvent="Refresh"></IconPicker>
@@ -310,7 +306,7 @@
     }
 
 
-    public void ChangeOption()
+    public void HandleGridControlComplete(string action)
     {
         Task.Run(async ()=>{ 
             await JS.InvokeAsync<string>("ChangeOption","Grid","Toggle");

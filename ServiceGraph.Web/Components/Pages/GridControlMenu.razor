@@ -1,0 +1,63 @@
+﻿ 
+@inject ISyncService syncService
+@using Newtonsoft.Json;
+  
+<div class="project-selector-container">
+    <div class="project-selector hex">
+        <div class="project-actions">
+            <FluentAutocomplete AutoComplete="on"
+                                Autofocus="true"
+                                Width="350px"
+                                Placeholder="Select a Node"
+                                OnOptionsSearch="@OnSearchAsync"
+                                MaximumSelectedOptions="5"
+                                OptionText="@(item => item.Name)" 
+                                TOption="ServiceNode"
+                                @bind-SelectedOptions="@selectedNodes"
+                                 />
+                 
+            <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="async ()=>{ await ToggleGrid();}" Title="Toggle Grid" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.Grid())" />
+            <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="async ()=>{ await ToggleGrid();}" Title="Refresh" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.ArrowClockwise())" />
+        </div>
+    </div>
+</div>
+
+
+ 
+@code {
+
+    [Parameter] public EventCallback<string> Complete { get; set; }
+    IEnumerable<ServiceNode> selectedNodes = Array.Empty<ServiceNode>();
+    IEnumerable<ServiceNode> nodes = Array.Empty<ServiceNode>();
+    protected async Task ToggleGrid()
+    {
+        await Complete.InvokeAsync("Toggle Grid");
+    }
+    private async Task OnSearchAsync(OptionsSearchEventArgs<ServiceNode> e)
+    {
+
+        e.Items = nodes.Where(i => i.Name.StartsWith(e.Text, StringComparison.OrdinalIgnoreCase))
+                              .OrderBy(i => i.Name);
+    }
+    protected override async Task OnInitializedAsync()
+    {
+      
+    }
+    
+    // Add this to your _Host.cshtml or your JavaScript file
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var selectedProject = await syncService.GetSelectedProjectAsync();
+        if (selectedProject != null)
+            nodes = selectedProject.nodes;
+        if (firstRender)
+        {
+         
+        }
+    }
+
+     
+
+     
+}
+

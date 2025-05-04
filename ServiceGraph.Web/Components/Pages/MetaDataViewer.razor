@@ -133,6 +133,7 @@
 
     public async Task ViewMetaData(List<Metadata> items)
     {
+        var MetaDataByType = items.GroupBy(x => x.TagType);
         metadataItems = items;
         StateHasChanged();
     }

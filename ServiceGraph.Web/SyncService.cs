@@ -184,7 +184,8 @@ public class SyncService : ISyncService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get selected project");
-            throw;
+            return null;
+            //throw;
         }
     }
 
