@@ -1,8 +1,5 @@
 ﻿ @using System.Collections.Generic
-
-
- <style>
-
+<style>
     .metadata-container {
         display: flex;
         flex-direction: column;
@@ -56,87 +53,97 @@
         overflow-x: auto;
     }
 
+    .tab-content {
+        padding: 1rem 0;
+    }
 </style>
-<div class="metadata-container">
-    @if (metadataItems != null && metadataItems.Count > 0)
-    {
-        @foreach (var item in metadataItems)
-        {
-            <div class="metadata-card">
-                <div class="metadata-header">
-                    <span class="metadata-tag">@item.TagName</span>
-                    <span class="metadata-type">@item.TagType</span>
-                </div>
 
-                <div class="metadata-content">
-                    @switch (item.TagType)
+<div class="metadata-container">
+    <FluentTabs @bind-ActiveTabId="@activeTabId">
+        @foreach (var group in MetaDataByType)
+        {
+            <FluentTab Id="@group.Key" Label="@group.Key">
+                <div class="tab-content">
+                    @foreach (var item in group)
                     {
-                        case "Link":
-                            <a href="@item.TagValue" target="_blank" class="metadata-link">
-                                🔗 @item.TagValue
-                            </a>
-                            break;
-                        case "Text":
-                            <p>@item.TagValue</p>
-                            break;
-                        case "Code":
-                            <pre class="metadata-code"><code>@item.TagValue</code></pre>
-                            break;
-                        default:
-                            <p>@item.TagValue</p>
-                            break;
+                        <div>
+                            <div>
+                                <span>@item.TagName</span>
+                            </div>
+                            <div>
+                                @switch (item.TagType)
+                                {
+                                    case "Link":
+                                        <a href="@item.TagValue" target="_blank" class="metadata-link">
+                                            🔗 @item.TagValue
+                                        </a>
+                                        break;
+                                    case "Text":
+                                        <p>@item.TagValue</p>
+                                        break;
+                                    case "Code":
+                                        <pre class="metadata-code"><code>@item.TagValue</code></pre>
+                                        break;
+                                    default:
+                                        <p>@item.TagValue</p>
+                                        break;
+                                }
+                            </div>
+                        </div>
                     }
                 </div>
-            </div>
+            </FluentTab>
         }
-    }
-    else
-    {
-        <!-- Example placeholder metadata -->
-        <div class="metadata-placeholder">
-            <h4>Example Metadata:</h4>
-            <div class="metadata-card">
-                <div class="metadata-header">
-                    <span class="metadata-tag">Website</span>
-                    <span class="metadata-type">Link</span>
-                </div>
-                <div class="metadata-content">
-                    <a href="https://example.com" target="_blank" class="metadata-link">🔗 https://example.com</a>
-                </div>
-            </div>
-
-            <div class="metadata-card">
-                <div class="metadata-header">
-                    <span class="metadata-tag">Description</span>
-                    <span class="metadata-type">Text</span>
-                </div>
-                <div class="metadata-content">
-                    <p>This is a sample description for illustrative purposes.</p>
-                </div>
-            </div>
-
-            <div class="metadata-card">
-                <div class="metadata-header">
-                    <span class="metadata-tag">Config</span>
-                    <span class="metadata-type">Code</span>
-                </div>
-                <div class="metadata-content">
-                    <pre class="metadata-code"><code>{ "enabled": true, "level": "debug" }</code></pre>
-                </div>
-            </div>
-        </div>
-    }
+    </FluentTabs>
 </div>
 
 @code {
     private List<Metadata> metadataItems;
+    private IEnumerable<IGrouping<string, Metadata>> MetaDataByType = new List<IGrouping<string, Metadata>>();
+    private string activeTabId = string.Empty;
 
     public async Task ViewMetaData(List<Metadata> items)
     {
-        var MetaDataByType = items.GroupBy(x => x.TagType);
-        metadataItems = items;
+        if (items != null && items.Count > 0)
+        {
+            metadataItems = items;
+            MetaDataByType = items.GroupBy(x => x.TagType);
+        }
+        else
+        {
+            List<Metadata> exampleItems = new List<Metadata>
+            {
+                new Metadata
+                {
+                    TagName = "Website",
+                    TagType = "Link",
+                    TagValue = "https://example.com"
+                },
+                new Metadata
+                {
+                    TagName = "Description",
+                    TagType = "Text",
+                    TagValue = "This is a sample description for illustrative purposes."
+                },
+                new Metadata
+                {
+                    TagName = "Config",
+                    TagType = "Code",
+                    TagValue = "{ \"enabled\": true, \"level\": \"debug\" }"
+                }
+            };
+
+            metadataItems = exampleItems;
+            MetaDataByType = exampleItems.GroupBy(x => x.TagType);
+        }
+
+        // Set the active tab to the first tab if available
+        var firstGroup = MetaDataByType.FirstOrDefault();
+        if (firstGroup != null)
+        {
+            activeTabId = firstGroup.Key;
+        }
+
         StateHasChanged();
     }
-
-    
 }
