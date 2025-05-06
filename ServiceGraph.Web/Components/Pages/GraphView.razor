@@ -1,7 +1,7 @@
 ﻿@inject ISyncService syncService;
 @inject ILogger<GraphView> Logger;
 @inject NavigationManager Navigation
-
+@* @inject IKustoQueryService kustoQueryService; *@
 <style>
     .leftToolBar {
     display: flex;
@@ -70,6 +70,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // var results = await kustoQueryService.RunSampleQueryAsync();
+        // foreach (var v in results)
+        // {
+        //     Logger.LogInformation(v);
+        // }
+         
         await base.OnInitializedAsync();
     }
 

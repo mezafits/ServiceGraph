@@ -20,11 +20,12 @@
     <PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="3.8.4" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="3.8.4" />
   </ItemGroup>
-
-  <!--<Target Name="ZipOutputPath" AfterTargets="Build">
+  <Target  Condition="'$(Configuration)'=='Release'"  Name="ZipAndPublish" AfterTargets="Publish">
     <Message Text="Creating .zip for $(SolutionDir)" Importance="High" />
-    <ZipDirectory SourceDirectory="$(SolutionDir)\ServiceGraph.Web\bin\Release\net8.0" DestinationFile="$(SolutionDir)\Deployment\bin\webbin.zip" Overwrite="true" />
-  </Target>-->
+    <ZipDirectory SourceDirectory="$(SolutionDir)\Deployment\bin\webbin"
+                  DestinationFile="$(SolutionDir)\Deployment\bin\webbin.zip" Overwrite="true" />
+  </Target>
+   
   
   <ItemGroup>
     <Content Update="Components\Pages\EditEdge.razor">

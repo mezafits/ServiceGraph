@@ -59,6 +59,14 @@
 </style>
 
 <div class="metadata-container">
+    <div class="project-selector-container">
+    <div class="project-selector hex">
+        <div class="project-actions">
+    <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="async ()=>{ await AddMetaData();}" Title="Toggle Grid" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.Add())" />
+    <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="async ()=>{ await EditMetaData();}" Title="Toggle Grid" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.Edit())" />
+        </div>
+        </div>
+    </div>
     <FluentTabs @bind-ActiveTabId="@activeTabId">
         @foreach (var group in MetaDataByType)
         {
@@ -143,6 +151,16 @@
 
         return base.OnInitializedAsync();
     }
+    private async Task AddMetaData()
+    {
+    
+    }
+    private async Task EditMetaData()
+    {
+        // Logic to edit metadata
+    }
+
+
     public async Task ViewMetaData(List<Metadata> items)
     {
         if (items != null && items.Count > 0)
