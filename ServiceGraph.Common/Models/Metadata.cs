@@ -1,5 +1,14 @@
 ﻿namespace ServiceGraph.Common
 {
+    public enum MetadataType
+    {
+        Text,
+        Link,
+        Query,
+        Tags,
+        Properties
+    }
+
     public class Metadata
     {
         public Guid Id { get; set; }

@@ -133,9 +133,10 @@
                                     <div class="form-group">
                                         <label>Tag Type</label>
                                         <InputSelect class="form-control mb-2" @bind-Value="metadata.TagType">
-                                            <option value="Link">Link</option>
-                                            <option value="Text">Text</option>
-                                            <option value="Query">Query</option>
+                                            @foreach (var v in Enum.GetValues(typeof(MetadataType)))
+                                            {
+                                                  <option value = "@v"> @v </option>
+                                            }
                                         </InputSelect>
                                     </div>
 
