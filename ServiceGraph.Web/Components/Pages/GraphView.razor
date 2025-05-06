@@ -4,13 +4,13 @@
 
 <style>
     .leftToolBar {
-        display: flex;
-        width: 250px;
+    display: flex;
+    width: 250px;
     }
 
     .meta-data {
-        border-left: 1px solid blue; /* 1px blue border on the left */
-        border-right: 1px solid blue; /* 1px  blue border on the right */
+    border-left: 1px solid blue; /* 1px blue border on the left */
+    border-right: 1px solid blue; /* 1px  blue border on the right */
     }
 
 </style>
@@ -29,15 +29,15 @@
     </div>
     <div class="row">
         <FluentSplitter Orientation="@Orientation.Horizontal"   BarSize="6" Panel1MinSize="25%" Panel2Size="30%" Panel2MinSize="30%">
-        <Panel1>
-            <div id="cy" style="width: 100%; height: 90vh;"></div>
-        </Panel1>
+            <Panel1>
+                <div id="cy" style="width: 100%; height: 90vh;"></div>
+            </Panel1>
             <Panel2>
-                    <MetaDataViewer @ref="metaDataViewer"></MetaDataViewer>
+                <MetaDataViewer @ref="metaDataViewer"></MetaDataViewer>
             </Panel2>
         </FluentSplitter>
     </div>
-   
+
     <EditNode @ref=editModal Complete="Refresh"></EditNode>
     <EditEdge @ref=editEdgeModal Complete="Refresh"></EditEdge>
     <IconPicker @ref=iconPicker IconSelectedEvent="Refresh"></IconPicker>
@@ -70,7 +70,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-
         await base.OnInitializedAsync();
     }
 
@@ -89,7 +88,7 @@
            Refresh();
            return;
        });
-
+        
         base.OnAfterRender(firstRender);
     }
 
