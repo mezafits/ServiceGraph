@@ -37,12 +37,16 @@ builder.Logging.AddConsole();
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+//builder.Services.AddScoped<IKustoQueryService, KustoQueryService>();
 
 builder.Services.AddServerSideBlazor().AddCircuitOptions(options => { options.DetailedErrors = true; });
 builder.Services.AddOutputCache();
 
 builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd");
-//builder.Services.AddControllers();
+    //.EnableTokenAcquisitionToCallDownstreamApi()
+    //.AddInMemoryTokenCaches();
+
+builder.Services.AddControllers();
 builder.Services.AddAuthorizationCore();
 
 builder.Services.AddHttpClient<ServiceClient>(client=> client.BaseAddress = new(serviceBaseAddress));

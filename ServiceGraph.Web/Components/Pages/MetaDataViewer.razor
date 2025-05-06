@@ -67,21 +67,30 @@
                     @foreach (var item in group)
                     {
                         <div>
-                            <div>
-                                <span>@item.TagName</span>
-                            </div>
+                           
                             <div>
                                 @switch (item.TagType)
                                 {
                                     case "Link":
+                                        <div>
+                                            <span>@item.TagName</span>
+                                        </div>
                                         <a href="@item.TagValue" target="_blank" class="metadata-link">
                                             🔗 @item.TagValue
                                         </a>
                                         break;
                                     case "Text":
-                                        <p>@item.TagValue</p>
+                                        <BlazoredTextEditor>
+                                            <ToolbarContent><div><span>@item.TagName</span></div></ToolbarContent>
+                                            <EditorContent>
+                                                <div class="metadata-content">@item.TagValue</div>
+                                            </EditorContent>
+                                        </BlazoredTextEditor>
                                         break;
                                     case "Code":
+                                        <div>
+                                            <span>@item.TagName</span>
+                                        </div>
                                         <pre class="metadata-code"><code>@item.TagValue</code></pre>
                                         break;
                                     default:

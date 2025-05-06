@@ -98,84 +98,106 @@ var grid_options = {
 //====================
 
 // Initialize cytoscape
-var cy = cytoscape({
-    container: document.getElementById('cy'),
-    style: cytoscape.stylesheet()
-        .selector('.groupNode')
-        .style(
-            {
-                'text-margin-y': '5px',
-                'text-valign': 'bottom',
-                'shape': 'round-rectangle',
-            })
-        .css({
-            'border-width': 1,
-            'border-color': 'rgba(0, 122, 255, 1.0)',
-            'content': 'data(name)',
-            'text-valign': 'bottom',
-            'color': 'white',
-            'text-outline-width': 1,
-            'text-outline-color': 'black',
-            'background-color': '#00000000',
+ var cy = cytoscape({
+  container: document.getElementById('cy'),
+  style: [
+    // Group Node Style
+    {
+      selector: '.groupNode',
+      style: {
+        'text-margin-y': '5px',
+        'text-valign': 'bottom',
+        'shape': 'round-rectangle',
+        'border-width': 1,
+        'border-color': 'rgba(0, 122, 255, 1.0)',
+        'content': 'data(name)',
+        'color': 'white',
+        'text-outline-width': 1,
+        'text-outline-color': 'black',
+        'background-color': '#00000000'
+      }
+    },
 
-        })
-        .selector('.primaryNode')
-        .style(
-            {
-                'text-margin-y': '5px',
-                'text-valign': 'bottom',
-                'shape': 'round-rectangle',
-                'background-image': function (ele) {
-                    return makeSvg(ele).svg;
-                },
-                'width': 50,
-                'height': 50
-            })
-        .css({
-            'border-width': 1,
-            'border-color': 'rgba(0, 122, 255, 1.0)',
-            'content': 'data(name)',
-            'text-valign': 'bottom',
-            'color': 'white',
-            'text-outline-width': 1,
-            'text-outline-color': 'black',
-            'background-color': 'white',
+    // Primary Node Style
+    {
+      selector: '.primaryNode',
+      style: {
+        'text-margin-y': '5px',
+        'text-valign': 'bottom',
+        'shape': 'round-rectangle',
+        'border-width': 1,
+        'border-color': 'rgba(0, 122, 255, 1.0)',
+        'content': 'data(name)',
+        'color': 'white',
+        'text-outline-width': 1,
+        'text-outline-color': 'black',
+        'background-color': 'white',
+        'background-image': function (ele) {
+          return makeSvg(ele).svg;
+        },
+        'width': 50,
+        'height': 50
+      }
+    },
 
-        })
-        .selector(':selected')
-        .css({
-            'background-color': 'rgba(0,122,255,1.0)',
-            'source-arrow-color': 'rgba(0,122,255,1.0)',
-            'text-outline-color': 'rgba(0,122,255,1.0)'
-        })
-        .selector(':parent')
-        .css({
-            'text-valign': 'top',
-            'text-halign': 'center',
-            'shape': 'round-rectangle',
-            'corner-radius': "10",
-            'padding': 10
-        }),
-    wheelSensitivity: 0.15,
-    minZoom: 0.5,
-    maxZoom: 2
-});
+    // Selected State
+    {
+      selector: ':selected',
+      style: {
+        'background-color': 'rgba(0,122,255,1.0)',
+        'source-arrow-color': 'rgba(0,122,255,1.0)',
+        'text-outline-color': 'rgba(0,122,255,1.0)'
+      }
+    },
 
-// Add edge arrow styles
-cy.style()
-    .selector('.arrowTarget')
-    .style({
+    // Parent Nodes
+    {
+      selector: ':parent',
+      style: {
+        'text-valign': 'top',
+        'text-halign': 'center',
+        'shape': 'round-rectangle',
+        'corner-radius': 10,
+        'padding': 10
+      }
+    },
+
+    // Arrow Styles
+    {
+      selector: '.arrowTarget',
+      style: {
         'target-arrow-shape': 'triangle',
         'curve-style': 'bezier'
-    });
-
-cy.style()
-    .selector('.arrowBoth')
-    .style({
+      }
+    },
+    {
+      selector: '.arrowBoth',
+      style: {
         'source-arrow-shape': 'triangle',
         'target-arrow-shape': 'triangle',
         'curve-style': 'bezier'
-    });
+      }
+    },
+
+    // Data mappers
+    {
+      selector: 'edge',
+      style: {
+        'line-color': 'data(lineColor)'
+      }
+    },
+    {
+      selector: 'node',
+      style: {
+        'border-color': 'data(borderColor)'
+      }
+    }
+  ],
+  wheelSensitivity: 0.15,
+  minZoom: 0.5,
+  maxZoom: 2
+});
+
 
 //====================
 // UTILITY FUNCTIONS
@@ -516,6 +538,8 @@ function contextMenu(cy) {
 //====================
 
 // Refresh the graph with new data
+
+
 function refresh(data_collection) {
     //Please be advised, the json conversion between C# and Json seems to be causing camel casing for properties. so Node becomes node, NodeType becomes nodeType etc.etc..
     elements = [];
@@ -534,6 +558,7 @@ function refresh(data_collection) {
                     label: node.name,
                     name: node.name,
                     iconId: node.iconId,
+                    borderColor: 'Red',
                     type: 'node'
                 },
                 position: { x: parseFloat(node.xpos), y: parseFloat(node.ypos) }
@@ -550,6 +575,7 @@ function refresh(data_collection) {
                     serviceId: node.id,
                     label: node.name,
                     name: node.name,
+                    borderColor:'Green',
                     type: 'node'
                 },
                 position: { x: parseFloat(node.xpos), y: parseFloat(node.ypos) }
@@ -568,6 +594,7 @@ function refresh(data_collection) {
                 name: path.source,
                 source: path.source,
                 target: path.destination,
+                lineColor: 'rgba(0, 122, 255, 1.0)',
                 type: 'edge'
             }
         });
