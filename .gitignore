@@ -13,3 +13,5 @@
 /ServiceGraph.Web/bin/Release/net8.0
 /Deployment/bin/apibin.zip
 /Deployment/bin/webbin.zip
+/Deployment/bin/apibin
+/Deployment/bin/webbin
