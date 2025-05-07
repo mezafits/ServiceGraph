@@ -13,7 +13,7 @@ public class Edge:BaseObject
         public string Destination { get; set; }
         public bool IsBidirectional { get; set; } = false;
         public List<Metadata> Metadata { get; set; } = new List<Metadata>();
-
+        public EdgeStyle Style { get; set; } = new EdgeStyle();
         public override Guid GetPid()
         {
             return Id;

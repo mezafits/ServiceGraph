@@ -1,4 +1,7 @@
-﻿namespace ServiceGraph.Common
+﻿using Newtonsoft.Json;
+using System.Xml.Linq;
+
+namespace ServiceGraph.Common
 {
     public class Project : BaseObject
     {
@@ -8,7 +11,6 @@
         public List<string> Readers { get; set; }
         public List<ServiceNode> nodes { get; set; }
         public List<Edge> edges { get; set; }
-
         public Guid ServiceTreeId { get; set; }
 
         public override Guid GetPid()
@@ -69,7 +71,7 @@
             edges.RemoveAll(e => e.Id == edge.Id);
         }
 
-
+       
     }
-
+  
 }

@@ -344,7 +344,8 @@
                  
                 if (selectedProject != null)
                 {
-                    await JS.InvokeAsync<string>("refresh", selectedProject);
+                    var p = selectedProject;
+                    await JS.InvokeAsync<string>("refresh",p);
                 }
             }
         });

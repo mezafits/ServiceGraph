@@ -18,6 +18,7 @@ namespace ServiceGraph.Common
 
         public List<Metadata> Metadata { get; set; } = new List<Metadata>();
 
+        public ServiceNodeStyle Style { get; set; } = new ServiceNodeStyle();
         public override Guid GetPid()
         {
             return Id;

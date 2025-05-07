@@ -98,104 +98,111 @@ var grid_options = {
 //====================
 
 // Initialize cytoscape
- var cy = cytoscape({
-  container: document.getElementById('cy'),
-  style: [
-    // Group Node Style
-    {
-      selector: '.groupNode',
-      style: {
-        'text-margin-y': '5px',
-        'text-valign': 'bottom',
-        'shape': 'round-rectangle',
-        'border-width': 1,
-        'border-color': 'rgba(0, 122, 255, 1.0)',
-        'content': 'data(name)',
-        'color': 'white',
-        'text-outline-width': 1,
-        'text-outline-color': 'black',
-        'background-color': '#00000000'
-      }
-    },
-
-    // Primary Node Style
-    {
-      selector: '.primaryNode',
-      style: {
-        'text-margin-y': '5px',
-        'text-valign': 'bottom',
-        'shape': 'round-rectangle',
-        'border-width': 1,
-        'border-color': 'rgba(0, 122, 255, 1.0)',
-        'content': 'data(name)',
-        'color': 'white',
-        'text-outline-width': 1,
-        'text-outline-color': 'black',
-        'background-color': 'white',
-        'background-image': function (ele) {
-          return makeSvg(ele).svg;
+var cy = cytoscape({
+    container: document.getElementById('cy'),
+    style: [
+        // Group Node Style
+        {
+            selector: '.groupNode',
+            style: {
+                'text-margin-y': '5px',
+                'text-valign': 'bottom',
+                'shape': 'round-rectangle',
+                'border-width': 1,
+                'border-color': 'rgba(0, 122, 255, 1.0)',
+                'content': 'data(name)',
+                'color': 'white',
+                'text-outline-width': 1,
+                'text-outline-color': 'black',
+                'background-color': 'grey'
+            }
         },
-        'width': 50,
-        'height': 50
-      }
-    },
 
-    // Selected State
-    {
-      selector: ':selected',
-      style: {
-        'background-color': 'rgba(0,122,255,1.0)',
-        'source-arrow-color': 'rgba(0,122,255,1.0)',
-        'text-outline-color': 'rgba(0,122,255,1.0)'
-      }
-    },
+        // Primary Node Style
+        {
+            selector: '.primaryNode',
+            style: {
+                'text-margin-y': '5px',
+                'text-valign': 'bottom',
+                'shape': 'round-rectangle',
+                'border-width': 1,
+                'border-color': 'rgba(0, 122, 255, 1.0)',
+                'content': 'data(name)',
+                'color': 'white',
+                'text-outline-width': 1,
+                'text-outline-color': 'black',
+                'background-color': 'white',
+                'background-image': function (ele) {
+                    return makeSvg(ele).svg;
+                },
+                'width': 50,
+                'height': 50
+            }
+        },
 
-    // Parent Nodes
-    {
-      selector: ':parent',
-      style: {
-        'text-valign': 'top',
-        'text-halign': 'center',
-        'shape': 'round-rectangle',
-        'corner-radius': 10,
-        'padding': 10
-      }
-    },
 
-    // Arrow Styles
-    {
-      selector: '.arrowTarget',
-      style: {
-        'target-arrow-shape': 'triangle',
-        'curve-style': 'bezier'
-      }
-    },
-    {
-      selector: '.arrowBoth',
-      style: {
-        'source-arrow-shape': 'triangle',
-        'target-arrow-shape': 'triangle',
-        'curve-style': 'bezier'
-      }
-    },
 
-    // Data mappers
-    {
-      selector: 'edge',
-      style: {
-        'line-color': 'data(lineColor)'
-      }
-    },
-    {
-      selector: 'node',
-      style: {
-        'border-color': 'data(borderColor)'
-      }
-    }
-  ],
-  wheelSensitivity: 0.15,
-  minZoom: 0.5,
-  maxZoom: 2
+        // Data mappers
+        {
+            selector: 'edge',
+            style: {
+                'width': 'data(width)',
+                'curve-style': 'data(curveStyle)',
+                'line-color': 'data(lineColor)',
+                'line-style': 'data(lineStyle)',
+                'width': 'data(width)'
+            }
+        },
+        {
+            selector: 'node',
+            style: {
+                'background-color': 'data(backgroundColor)',
+                'border-color': 'data(borderColor)',
+            }
+        },
+        // Selected State
+        {
+            selector: ':selected',
+            style: {
+                'background-color': 'rgba(0,122,255,1.0)',
+                'source-arrow-color': 'rgba(0,122,255,1.0)',
+                'text-outline-color': 'rgba(0,122,255,1.0)'
+            }
+        },
+
+
+        {
+            selector: ':parent',
+            style: {
+                'text-valign': 'top',
+                'text-halign': 'center',
+                'shape': 'round-rectangle',
+                'corner-radius': 5,
+                'padding': 10
+            }
+        },
+
+
+        {
+            selector: '.arrowTarget',
+            style: {
+                'target-arrow-shape': 'triangle'
+
+            }
+        },
+        {
+            selector: '.arrowBoth',
+            style: {
+                'source-arrow-shape': 'triangle',
+                'target-arrow-shape': 'triangle'
+
+            }
+        }
+
+    ],
+    wheelSensitivity: 0.15,
+    minZoom: 0.5,
+    maxZoom: 2
 });
 
 
@@ -317,7 +324,7 @@ function createGroup(target) {
         var targetNode = selectedNodes[1];
 
         var collection = Array(sourceNode.data('id'), targetNode.data('id'));
-         
+
         console.log("Executing Group Node");
 
         var results = window.dotNetHelper.invokeMethodAsync('AddGroupNode', collection, 0, 0);
@@ -393,7 +400,7 @@ function executeCommand(ele, command) {
             var results = window.dotNetHelper.invokeMethodAsync('GetEdgeById', selectedObject);
             results.then(function (r) {
                 console.log(r);
-                var myModal = new bootstrap.Modal(document.getElementById('editEdgeModal'));    
+                var myModal = new bootstrap.Modal(document.getElementById('editEdgeModal'));
                 myModal.show(r);
             });
         }
@@ -558,8 +565,26 @@ function refresh(data_collection) {
                     label: node.name,
                     name: node.name,
                     iconId: node.iconId,
-                    borderColor: 'Red',
-                    type: 'node'
+                    type: 'node',
+                    //width: node.style.width,
+                    //height: node.style.height,
+                    //shape: node.style.shape,
+                    //cornerRadius: node.style.cornerRadius,
+                    backgroundColor: node.style.backgroundColor,
+                    //backgroundOpacity: node.style.backgroundOpacity,
+                    //backgroundFill: node.style.backgroundFill,
+                    borderColor: node.style.borderColor
+                    //borderWidth: node.style.borderWidth,
+                    //borderStyle: node.style.borderStyle,
+                    //borderOpacity: node.style.borderOpacity,
+                    //padding: node.style.padding,
+                    //color: node.style.color,
+                    //fontSize: node.style.fontSize,
+                    //fontFamily: node.style.fontFamily,
+                    //textHAlign: node.style.textHAlign,
+                    //textVAlign: node.style.textVAlign,
+                    //zIndex: node.style.zIndex
+
                 },
                 position: { x: parseFloat(node.xpos), y: parseFloat(node.ypos) }
             });
@@ -575,8 +600,25 @@ function refresh(data_collection) {
                     serviceId: node.id,
                     label: node.name,
                     name: node.name,
-                    borderColor:'Green',
-                    type: 'node'
+                    type: 'node',
+                    //width: node.style.width,
+                    //height: node.style.height,
+                    //shape: node.style.shape,
+                    //cornerRadius: node.style.cornerRadius,
+                    backgroundColor: node.style.backgroundColor,
+                    //backgroundOpacity: node.style.backgroundOpacity,
+                    //backgroundFill: node.style.backgroundFill,
+                    borderColor: node.style.borderColor
+                    //borderWidth: node.style.borderWidth,
+                    //borderStyle: node.style.borderStyle,
+                    //borderOpacity: node.style.borderOpacity,
+                    //padding: node.style.padding,
+                    //color: node.style.color,
+                    //fontSize: node.style.fontSize,
+                    //fontFamily: node.style.fontFamily,
+                    //textHAlign: node.style.textHAlign,
+                    //textVAlign: node.style.textVAlign,
+                    //zIndex: node.style.zIndex
                 },
                 position: { x: parseFloat(node.xpos), y: parseFloat(node.ypos) }
             });
@@ -594,8 +636,22 @@ function refresh(data_collection) {
                 name: path.source,
                 source: path.source,
                 target: path.destination,
-                lineColor: 'rgba(0, 122, 255, 1.0)',
-                type: 'edge'
+                type: 'edge',
+                width: path.style.width,
+                curveStyle: path.style.curveStyle,
+                lineColor: path.style.lineColor,
+                lineStyle: path.style.lineStyle,
+                //lineCap: path.style.lineCap,
+                //lineDashPattern: path.style.lineDashPattern,
+                //sourceArrowShape: path.style.sourceArrowShape,
+                //targetArrowShape: path.style.targetArrowShape,
+                //sourceArrowColor: path.style.sourceArrowColor,
+                //targetArrowColor: path.style.targetArrowColor,
+                //sourceArrowWidth: path.style.sourceArrowWidth,
+                //targetArrowWidth: path.style.targetArrowWidth,
+                //arrowScale: path.style.arrowScale,
+                //lineOpacity: path.style.lineOpacity,
+                //zIndex: path.style.zIndex
             }
         });
     }
@@ -611,7 +667,7 @@ function refresh(data_collection) {
     cy.fit();
     //https://github.com/iVis-at-Bilkent/cytoscape.js-grid-guide/blob/master/demo.html
 
-   
+
 
     cy.gridGuide(grid_options);
 
@@ -676,7 +732,7 @@ cy.on('mouseup', function (event) {
 //====================
 
 // Initialize grid guide
- cy.gridGuide(grid_options);
+cy.gridGuide(grid_options);
 
 // Initialize context menu
 contextMenu(cy);
