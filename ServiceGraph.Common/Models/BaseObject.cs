@@ -16,6 +16,8 @@ namespace ServiceGraph.Common
         [JsonProperty(PropertyName = "pid")]
         public Guid Pid { get { return GetPid(); } }
 
+        public List<Metadata> Metadata { get; set; } = new List<Metadata>();
+
         public abstract Guid GetPid();
     }
 

@@ -16,8 +16,6 @@ namespace ServiceGraph.Common
         public float Xpos { get; set; }
         public float Ypos { get; set; }
 
-        public List<Metadata> Metadata { get; set; } = new List<Metadata>();
-
         public ServiceNodeStyle Style { get; set; } = new ServiceNodeStyle();
         public override Guid GetPid()
         {

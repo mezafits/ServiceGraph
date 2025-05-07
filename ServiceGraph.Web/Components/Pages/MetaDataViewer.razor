@@ -1,4 +1,7 @@
 ﻿ @using System.Collections.Generic
+ @inject IJSRuntime JSRuntime
+ @inject ISyncService syncService
+
 <style>
     .metadata-container {
     display: flex;
@@ -60,11 +63,11 @@
 
 <div class="metadata-container">
     <div class="project-selector-container">
-    <div class="project-selector hex">
-        <div class="project-actions">
-    <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="async ()=>{ await AddMetaData();}" Title="Toggle Grid" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.Add())" />
-    <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="async ()=>{ await EditMetaData();}" Title="Toggle Grid" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.Edit())" />
-        </div>
+        <div class="project-selector hex">
+            <div class="project-actions">
+                <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="async ()=>{ await ShowCreateMetadata(true);}" Title="Add Metadata" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.Add())" />
+                <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="async ()=>{ await ShowCreateMetadata(false);}" Title="Edit Metadata" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.Edit())" />
+            </div>
         </div>
     </div>
     <FluentTabs @bind-ActiveTabId="@activeTabId">
@@ -74,8 +77,7 @@
                 <div class="tab-content">
                     @foreach (var item in group)
                     {
-                        <div>
-                           
+                        <div class="metadata-item @(item == selectedMetadata ? "selected" : "")" @onclick="() => SelectMetadata(item)">
                             <div>
                                 @switch (item.TagType)
                                 {
@@ -114,9 +116,102 @@
     </FluentTabs>
 </div>
 
+
+<div class="modal fade" id="AddMetaDataModal" tabindex="-1" role="dialog" aria-labelledby="myModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="myModalTitle">Edit Edge</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="@selectedMetadata">
+                    <div class="metadata-container">
+                        <div class="metadata-card">
+                            <div class="form-group">
+                                <label>Tag Type</label>
+                                <InputSelect class="form-control mb-2" @bind-Value="selectedMetadata.TagType">
+                                    <option value="Link">Link</option>
+                                    <option value="Text">Text</option>
+                                    <option value="Query">Query</option>
+                                </InputSelect>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Tag Name</label>
+                                <InputText class="form-control mb-2" @bind-Value="selectedMetadata.TagName" />
+                            </div>
+
+                            <div class="form-group">
+                                <label>Tag Value</label>
+                                <InputText class="form-control mb-2" @bind-Value="selectedMetadata.TagValue" />
+                            </div>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="CreateMetadata" data-dismiss="modal">Save Changes</button>
+                <button type="button" class="btn btn-secondary" @onclick="@(() =>{})" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="EdgeMetaDataModal" tabindex="-1" role="dialog" aria-labelledby="myModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="myModalTitle">Edit Edge</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="@selectedMetadata">
+                    <div class="metadata-container">
+                        <div class="metadata-card">
+                            <div class="form-group">
+                                <label>Tag Type</label>
+                                <InputSelect class="form-control mb-2" @bind-Value="selectedMetadata.TagType">
+                                    <option value="Link">Link</option>
+                                    <option value="Text">Text</option>
+                                    <option value="Query">Query</option>
+                                </InputSelect>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Tag Name</label>
+                                <InputText class="form-control mb-2" @bind-Value="selectedMetadata.TagName" />
+                            </div>
+
+                            <div class="form-group">
+                                <label>Tag Value</label>
+                                <InputText class="form-control mb-2" @bind-Value="selectedMetadata.TagValue" />
+                            </div>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="UpdateMetadata" data-dismiss="modal">Save Changes</button>
+                <button type="button" class="btn btn-secondary" @onclick="@(() =>{})" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 @code {
+
+
+    private string BSOType = string.Empty;
     private List<Metadata> metadataItems;
     private List<Metadata> exampleItems;
+    private BaseObject baseObject;
+    private Metadata selectedMetadata = new Metadata();
     private IEnumerable<IGrouping<string, Metadata>> MetaDataByType = new List<IGrouping<string, Metadata>>();
     private string activeTabId = string.Empty;
     protected override Task OnInitializedAsync()
@@ -151,18 +246,118 @@
 
         return base.OnInitializedAsync();
     }
-    private async Task AddMetaData()
+
+    private void SelectMetadata(Metadata item)
     {
+        selectedMetadata = item;
+    }
+
+    private void CreateMetadata()
+    {
+        selectedMetadata.Id = Guid.NewGuid();
+        if (BSOType == "ServiceNode")
+        {
+            var serviceNode = baseObject as ServiceNode;
+            if (serviceNode != null)
+            {
+                serviceNode.Metadata.Add(selectedMetadata);
+                baseObject = serviceNode;
+            }
+            syncService.UpsertServiceNodeAsync(serviceNode);
+        }
+        else if (BSOType == "Edge")
+        {
+            var edge = baseObject as Edge;
+            if (edge != null)
+            {
+                edge.Metadata.Add(selectedMetadata);
+                baseObject = edge;
+            }
+            syncService.UpsertEdgeAsync(edge);
+        }
+        else if (BSOType == "Project")
+        {
+            var project = baseObject as Project;
+            if (project != null)
+            {
+                project.Metadata.Add(selectedMetadata);
+                baseObject = project;
+            }
+            syncService.UpsertProjectAsync(project);
+        }
+    }
     
-    }
-    private async Task EditMetaData()
+    private void UpdateMetadata()
     {
-        // Logic to edit metadata
+        
+        if (BSOType == "ServiceNode")
+        {
+            var serviceNode = baseObject as ServiceNode;
+            if (serviceNode != null)
+            {
+                var index = serviceNode.Metadata.FindIndex(m => m.Id == selectedMetadata.Id);
+                serviceNode.Metadata[index] = selectedMetadata;
+                syncService.UpsertServiceNodeAsync(serviceNode);
+            }
+            
+        }
+        else if (BSOType == "Edge")
+        {
+            var edge = baseObject as Edge;
+            if (edge != null)
+            {
+                var index = edge.Metadata.FindIndex(m => m.Id == selectedMetadata.Id);
+                edge.Metadata[index] = selectedMetadata;
+                syncService.UpsertEdgeAsync(edge);
+            }
+            
+        }
+        else if (BSOType == "Project")
+        {
+            var project = baseObject as Project;
+            if (project != null)
+            {
+                var index = project.Metadata.FindIndex(m => m.Id == selectedMetadata.Id);
+                project.Metadata[index] = selectedMetadata;
+                syncService.UpsertProjectAsync(project);
+            }
+
+        }
     }
 
-
-    public async Task ViewMetaData(List<Metadata> items)
+    private async Task ShowCreateMetadata(bool createNew)
     {
+        if(createNew)
+        {
+            await JSRuntime.InvokeVoidAsync("showModal", "AddMetaDataModal");
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("showModal", "EdgeMetaDataModal");
+        }
+    }
+
+    public async Task ViewServiceNode(ServiceNode node)
+    {
+        BSOType = "ServiceNode";
+        await ViewMetaData(node);
+    }
+    public async Task ViewEdge(Edge edge)
+    {
+        BSOType = "Edge";
+        await ViewMetaData(edge);
+    }
+    public async Task ViewProject(Project project)
+    {
+        BSOType = "Project";    
+        await ViewMetaData(project);
+    }
+
+     
+    private async Task ViewMetaData(BaseObject bso)
+    {
+        baseObject = bso;
+        var items = bso.Metadata;
         if (items != null && items.Count > 0)
         {
             metadataItems = items;

@@ -101,7 +101,6 @@ var grid_options = {
 var cy = cytoscape({
     container: document.getElementById('cy'),
     style: [
-        // Group Node Style
         {
             selector: '.groupNode',
             style: {
@@ -117,8 +116,6 @@ var cy = cytoscape({
                 'background-color': 'grey'
             }
         },
-
-        // Primary Node Style
         {
             selector: '.primaryNode',
             style: {
@@ -139,10 +136,6 @@ var cy = cytoscape({
                 'height': 50
             }
         },
-
-
-
-        // Data mappers
         {
             selector: 'edge',
             style: {
@@ -160,7 +153,6 @@ var cy = cytoscape({
                 'border-color': 'data(borderColor)',
             }
         },
-        // Selected State
         {
             selector: ':selected',
             style: {
@@ -169,8 +161,6 @@ var cy = cytoscape({
                 'text-outline-color': 'rgba(0,122,255,1.0)'
             }
         },
-
-
         {
             selector: ':parent',
             style: {
@@ -181,8 +171,6 @@ var cy = cytoscape({
                 'padding': 10
             }
         },
-
-
         {
             selector: '.arrowTarget',
             style: {

@@ -75,7 +75,7 @@
         // {
         //     Logger.LogInformation(v);
         // }
-         
+
         await base.OnInitializedAsync();
     }
 
@@ -94,7 +94,7 @@
            Refresh();
            return;
        });
-        
+
         base.OnAfterRender(firstRender);
     }
 
@@ -146,13 +146,19 @@
         if (elementType == "edge")
         {
             var ele = selectedProject.edges.Where(x => x.Id == Guid.Parse(elementId)).SingleOrDefault();
-            await metaDataViewer.ViewMetaData(ele.Metadata);
+            await metaDataViewer.ViewEdge(ele);
         }
 
         if (elementType == "node")
         {
             var ele = selectedProject.nodes.Where(x => x.Id == Guid.Parse(elementId)).SingleOrDefault();
-            await metaDataViewer.ViewMetaData(ele.Metadata);
+            await metaDataViewer.ViewServiceNode(ele);
+        }
+
+        if (elementType == "project")
+        {
+            var ele = selectedProject;
+            await metaDataViewer.ViewProject(ele);
         }
 
     }
