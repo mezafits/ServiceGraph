@@ -33,7 +33,7 @@
                 <div id="cy" style="width: 100%; height: 90vh;"></div>
             </Panel1>
             <Panel2>
-                <MetaDataViewer @ref="metaDataViewer"></MetaDataViewer>
+                <DataViewer @ref="metaDataViewer"></DataViewer>
             </Panel2>
         </FluentSplitter>
     </div>
@@ -55,7 +55,7 @@
 
     EditNode editModal = new EditNode();
     EditEdge editEdgeModal = new EditEdge();
-    MetaDataViewer metaDataViewer = new MetaDataViewer();
+    DataViewer metaDataViewer = new DataViewer();
     IconPicker iconPicker = new IconPicker();
 
     [Inject]

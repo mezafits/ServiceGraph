@@ -1,8 +1,6 @@
 ﻿@inject ISyncService syncService;
 @inject IJSRuntime JS;
 
-@* These models work by using the syncService to make changes, and then when the modal dialog closes a refresh is called that will update the view state.  *@
-
 <style>
     .metadata-container {
         display: flex;
@@ -109,55 +107,6 @@
                         <label for="serviceName">Service Name</label>
                         <InputText id="serviceName" class="form-control" @bind-Value="serviceNode.Name" />
                     </div>
-                    <div class="form-group">
-                        <label>Metadata</label>
-                        <br />
-
-                        <!-- Quick Add Metadata Section -->
-                        <div class="quick-add-container">
-                            <div class="quick-add-title">Quick Add Common Metadata</div>
-                            <div class="quick-add-buttons">
-                                @foreach (var template in metadataTemplates)
-                                {
-                                    <button type="button" class="quick-add-btn" @onclick="() => AddMetadataTemplate(template)">
-                                        @template.TagName
-                                    </button>
-                                }
-                            </div>
-                        </div>
-
-                        @foreach (var metadata in serviceNode.Metadata)
-                        {
-                            <div class="metadata-container">
-                                <div class="metadata-card">
-                                    <div class="form-group">
-                                        <label>Tag Type</label>
-                                        <InputSelect class="form-control mb-2" @bind-Value="metadata.TagType">
-                                            <option value="Link">Link</option>
-                                            <option value="Text">Text</option>
-                                            <option value="Query">Query</option>
-                                        </InputSelect>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>Tag Name</label>
-                                        <InputText class="form-control mb-2" @bind-Value="metadata.TagName" />
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>Tag Value</label>
-                                        <InputText class="form-control mb-2" @bind-Value="metadata.TagValue" />
-                                    </div>
-
-                                    <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => RemoveMetadataField(metadata)">
-                                        Remove
-                                    </button>
-                                </div>
-                            </div>
-                        }
-
-                        <button type="button" class="btn btn-secondary btn-sm" @onclick="AddMetadataField">Add More Metadata</button>
-                    </div>
                 </EditForm>
             </div>
             <div class="modal-footer">
@@ -172,27 +121,7 @@
     [Parameter] public EventCallback<string> Complete { get; set; }
 
     private ServiceNode serviceNode = new ServiceNode { Metadata = new List<Metadata>() };
-
-    List<SvgFileInfo> icons = new List<SvgFileInfo>();
-
-    // Define metadata templates for quick-add functionality
-    private List<Metadata> metadataTemplates = new List<Metadata>
-    {
-        new Metadata { Id = Guid.Empty, TagType = "Text", TagName = "Geneva Logs Account", TagValue = "" },
-        new Metadata { Id = Guid.Empty, TagType = "Text", TagName = "Geneva Metrics Account", TagValue = "" },
-        new Metadata { Id = Guid.Empty, TagType = "Text", TagName = "DGrep Namespace", TagValue = "" }
-    };
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-          //place holder for code that should only execute once.
-        }
-
-        await base.OnAfterRenderAsync(firstRender);
-    }
-
+  
     public void SetServiceNode(ServiceNode node)
     {
         serviceNode = node;
@@ -204,32 +133,5 @@
         await syncService.UpsertServiceNodeAsync(serviceNode);
     }
 
-    private void AddMetadataField()
-    {
-        serviceNode.Metadata.Add(new Metadata() { Id = Guid.NewGuid(), TagName = "", TagValue = "" });
-    }
-
-    private void RemoveMetadataField(Metadata metadata)
-    {
-        serviceNode.Metadata.Remove(metadata);
-    }
-
-    private void AddMetadataTemplate(Metadata template)
-    {
-        // Check if this template already exists to avoid duplicates
-        bool alreadyExists = serviceNode.Metadata.Any(m =>
-            m.TagType == template.TagType &&
-            m.TagName == template.TagName);
-
-        if (!alreadyExists)
-        {
-            serviceNode.Metadata.Add(new Metadata
-                {
-                    Id = Guid.NewGuid(),
-                    TagType = template.TagType,
-                    TagName = template.TagName,
-                    TagValue = template.TagValue
-                });
-        }
-    }
+    
 }

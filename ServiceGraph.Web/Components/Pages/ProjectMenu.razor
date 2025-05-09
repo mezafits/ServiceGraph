@@ -81,6 +81,9 @@
                         <label for="newProjectName">Project Name</label>
                         <InputText id="newProjectName" class="form-control project-input" @bind-Value="newProject.ProjectName" />
                         <ValidationMessage For="@(() => newProject.ProjectName)" />
+                        <label for="isPublic">Is Public</label>
+                        <FluentCheckbox id="isPublic" @bind-Value="newProject.IsPublic" />
+                        <ValidationMessage For="@(() => newProject.IsPublic)" />
                     </div>
                 </EditForm>
             </div>
@@ -111,6 +114,9 @@
                             <label for="projectName">Project Name</label>
                             <InputText id="projectName" class="form-control project-input" @bind-Value="selectedProject.ProjectName" />
                             <ValidationMessage For="@(() => selectedProject.ProjectName)" />
+                            <label for="isPublic">Is Public</label>
+                            <FluentCheckbox id="isPublic" @bind-Value="selectedProject.IsPublic" />
+                            <ValidationMessage For="@(() => selectedProject.IsPublic)" />
                         </div>
                         <!-- You can add more fields here as needed -->
                     </EditForm>

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using ServiceGraph.Common.Models;
 using System.Xml.Linq;
 
 namespace ServiceGraph.Common
@@ -12,6 +13,12 @@ namespace ServiceGraph.Common
         public List<ServiceNode> nodes { get; set; }
         public List<Edge> edges { get; set; }
         public Guid ServiceTreeId { get; set; }
+
+        public bool IsPublic
+        {
+            get => Metadata.GetValue<bool>(nameof(IsPublic),false);
+            set => Metadata.SetValue(nameof(IsPublic), value);
+        }
 
         public override Guid GetPid()
         {

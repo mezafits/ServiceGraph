@@ -98,6 +98,12 @@ var grid_options = {
 //====================
 
 // Initialize cytoscape
+
+//Here a lot of the styling is setup, it is not finished or well defined at this point.
+//a combination of default styling and data mapping is being done to create the theme.
+//I need consider the best approach to this, so that styling feels consistent and easy to manage.
+//it may be necessary to use to distinct styling sections. 
+//One for the default styling, and one for the styling overrides on individual items. 
 var cy = cytoscape({
     container: document.getElementById('cy'),
     style: [
@@ -142,8 +148,7 @@ var cy = cytoscape({
                 'width': 'data(width)',
                 'curve-style': 'data(curveStyle)',
                 'line-color': 'data(lineColor)',
-                'line-style': 'data(lineStyle)',
-                'width': 'data(width)'
+                'line-style': 'data(lineStyle)'
             }
         },
         {
