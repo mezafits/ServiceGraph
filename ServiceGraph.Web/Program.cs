@@ -9,6 +9,7 @@ using Microsoft.FluentUI.AspNetCore.Components;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using ServiceGraph.Web.Components;
+using ServiceGraph.Web.Services;
 using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,13 +46,21 @@ builder.Services.AddServerSideBlazor().AddCircuitOptions(options => { options.De
 builder.Services.AddOutputCache();
 
 builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd");
-    //.EnableTokenAcquisitionToCallDownstreamApi()
-    //.AddInMemoryTokenCaches();
+//.EnableTokenAcquisitionToCallDownstreamApi()
+//.AddInMemoryTokenCaches();
 
+var dbSettings = builder.Configuration.GetSection("db").Get<DatabaseSettings>();
+
+if (dbSettings == null)
+    throw new Exception("Database settings not found in configuration");
+
+
+builder.Services.AddSingleton<SvgFileCache>();
+builder.Services.AddSingleton(new RepositoryFactory(dbSettings));
 builder.Services.AddControllers();
 builder.Services.AddAuthorizationCore();
 
-builder.Services.AddHttpClient<ServiceClient>(client=> client.BaseAddress = new(serviceBaseAddress));
+//builder.Services.AddHttpClient<IconsUtility>(client=> client.BaseAddress = new(serviceBaseAddress));
 builder.Services.AddFluentUIComponents();
 builder.Services.AddRazorPages().AddMvcOptions(options =>
 {
@@ -60,6 +69,8 @@ builder.Services.AddRazorPages().AddMvcOptions(options =>
                   .Build();
     options.Filters.Add(new AuthorizeFilter(policy));
 }).AddMicrosoftIdentityUI();
+
+builder.Services.AddScoped<IServiceClient, ServiceClient>();
 builder.Services.AddScoped<ISyncService, SyncService>();
 builder.Services.AddScoped<ISyncStateService,SyncStateService>();
 

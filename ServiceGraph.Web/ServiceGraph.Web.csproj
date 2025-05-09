@@ -13,6 +13,7 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.49.1" />
     <PackageReference Include="Microsoft.Azure.Kusto.Data" Version="13.0.2" />
     <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.11.7" />
     <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.11.7" />
@@ -20,10 +21,9 @@
     <PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="3.8.4" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="3.8.4" />
   </ItemGroup>
-  <Target  Condition="'$(Configuration)'=='Release'"  Name="ZipAndPublish" AfterTargets="Publish">
+  <Target Condition="'$(Configuration)'=='Release'" Name="ZipAndPublish" AfterTargets="Publish">
     <Message Text="Creating .zip for $(SolutionDir)" Importance="High" />
-    <ZipDirectory SourceDirectory="$(SolutionDir)\Deployment\bin\webbin"
-                  DestinationFile="$(SolutionDir)\Deployment\bin\webbin.zip" Overwrite="true" />
+    <ZipDirectory SourceDirectory="$(SolutionDir)\Deployment\bin\webbin" DestinationFile="$(SolutionDir)\Deployment\bin\webbin.zip" Overwrite="true" />
   </Target>
    
   

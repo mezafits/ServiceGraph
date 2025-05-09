@@ -13,12 +13,7 @@ namespace ServiceGraph.Common
         public List<ServiceNode> nodes { get; set; }
         public List<Edge> edges { get; set; }
         public Guid ServiceTreeId { get; set; }
-
-        public bool IsPublic
-        {
-            get => Metadata.GetValue<bool>(nameof(IsPublic),false);
-            set => Metadata.SetValue(nameof(IsPublic), value);
-        }
+        public bool IsPublic { get; set; } = false;
 
         public override Guid GetPid()
         {

@@ -1,110 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using ServiceGraph.Common;
-public interface ISyncStateService
-{
-    Dictionary<string, Project> Projects { get; }
-    Guid SelectedProjectId { get; set; }
-    Project SelectedProject { get; }
-    Task InitializeAsync(string userName, ServiceClient serviceClient);
-    Task RefreshProjectsAsync(string userName, ServiceClient serviceClient);
-}
-
-public interface ISyncService
-{
-    Task<Project> GetSelectedProjectAsync();
-    Task SetSelectedProjectAsync(string projectId);
-    Task UpsertProjectAsync(Project project);
-    Task UpsertServiceNodeAsync(ServiceNode node);
-    Task UpsertEdgeAsync(Edge edge);
-    Task RemoveServiceNodeAsync(ServiceNode node);
-    Task RemoveEdgeAsync(Edge edge);
-    Task<ServiceNode> AddServiceNodeToGroupAsync(Guid projectId, Guid parentId, Guid serviceNodeId);
-    Task<ServiceNode> GetServiceNodeAsync(ServiceNode node);
-    Task<ServiceNode> GetServiceNodeByIdAsync(Guid projectId, Guid serviceNodeId);
-    Task<Edge> GetEdgeAsync(Edge edge);
-    Task<List<Project>> GetProjectsAsync();
-    Task<bool> SyncAsync(Project project);
-    Task<List<SvgFileInfo>> GetIcons();
-}
-
-// Singleton stateful service
-public class SyncStateService : ISyncStateService
-{
-    private readonly SemaphoreSlim _initLock = new(1, 1);
-    private readonly ILogger<SyncStateService> _logger;
-    private bool _initialized;
-
-    public SyncStateService(ILogger<SyncStateService> logger)
-    {
-        _logger = logger;
-    }
-
-    public Dictionary<string, Project> Projects { get; } = new();
-    public Guid SelectedProjectId { get; set; }
-    public Project SelectedProject
-    {
-        get
-        {
-            try
-            {
-                if (SelectedProjectId == Guid.Empty) return Projects.FirstOrDefault().Value;
-                if (Projects.TryGetValue(SelectedProjectId.ToString(), out var project))
-                {
-                    return project;
-                }
-                throw new KeyNotFoundException($"Project with ID {SelectedProjectId} not found");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving selected project with ID {ProjectId}", SelectedProjectId);
-                throw;
-            }
-        }
-    }
-
-    public async Task InitializeAsync(string userName, ServiceClient serviceClient)
-    {
-        if (_initialized) return;
-
-        try
-        {
-            await _initLock.WaitAsync();
-            if (_initialized) return;
-
-            await RefreshProjectsAsync(userName, serviceClient);
-            _initialized = true;
-            _logger.LogInformation("Initialized SyncStateService for user {UserName}", userName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to initialize SyncStateService for user {UserName}", userName);
-            throw;
-        }
-        finally
-        {
-            _initLock.Release();
-        }
-    }
-
-    public async Task RefreshProjectsAsync(string userName, ServiceClient serviceClient)
-    {
-        try
-        {
-            var projects = await serviceClient.GetProjectsAsync(userName);
-            Projects.Clear();
-            foreach (var project in projects)
-            {
-                Projects[project.Id.ToString()] = project;
-            }
-            _logger.LogInformation("Refreshed {Count} projects for user {UserName}", projects.Count, userName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to refresh projects for user {UserName}", userName);
-            throw new InvalidOperationException("Failed to refresh projects", ex);
-        }
-    }
-}
 
 // scoped service
 public class SyncService : ISyncService
@@ -113,20 +8,21 @@ public class SyncService : ISyncService
     private readonly IHttpClientFactory _clientFactory;
     private readonly AuthenticationStateProvider _authProvider;
     private readonly ILogger<SyncService> _logger;
+    private readonly RepositoryFactory _repoFactory;
 
-    private ServiceClient _client;
+    private IServiceClient _client;
     private string _userName;
 
     public SyncService(
         ISyncStateService state,
-        IHttpClientFactory clientFactory,
         AuthenticationStateProvider authProvider,
-        ILogger<SyncService> logger)
+        ILogger<SyncService> logger,
+        IServiceClient client)
     {
         _state = state;
-        _clientFactory = clientFactory;
         _authProvider = authProvider;
         _logger = logger;
+        _client = client;
     }
 
     private async Task EnsureInitializedAsync()
@@ -144,7 +40,6 @@ public class SyncService : ISyncService
             _userName = user.Identity.Name ?? user.Claims.FirstOrDefault(c => c.Type.Contains("email"))?.Value
                 ?? throw new InvalidOperationException("Unable to determine user identity");
 
-            _client = new ServiceClient(_clientFactory.CreateClient("ServiceClient"));
             await _state.InitializeAsync(_userName, _client);
         }
         catch (Exception ex)
@@ -217,10 +112,10 @@ public class SyncService : ISyncService
         {
             await EnsureInitializedAsync();
             var result = await _client.UpsertProject(project);
-            if (result.HasError)
+            if (result.HasErrors)
             {
-                _logger.LogError("Error upserting project {ProjectId}: {Error}", project.Id, result.Errors.First().Message);
-                throw new InvalidOperationException(result.Errors.First().Message);
+                _logger.LogError("Error upserting project {ProjectId}: {Error}", project.Id, result.Errors.First());
+                throw new InvalidOperationException(result.Errors.First());
             }
             _logger.LogInformation("Upserted project {ProjectId}", project.Id);
             _state.Projects[project.Id.ToString()] = project;
@@ -394,13 +289,13 @@ public class SyncService : ISyncService
         {
             await EnsureInitializedAsync();
             var result = await _client.UpsertProject(project);
-            if (!result.HasError)
+            if (!result.HasErrors)
             {
                 _state.Projects[project.Id.ToString()] = project;
                 return true;
             }
 
-            _logger.LogWarning("Project sync failed: {Error}", result.Errors.First().Message);
+            _logger.LogWarning("Project sync failed: {Error}", result.Errors.First());
             return false;
         }
         catch (Exception ex)
@@ -410,16 +305,16 @@ public class SyncService : ISyncService
         }
     }
 
-    public async Task<List<SvgFileInfo>> GetIcons()
-    {
-        try
-        {
-            return await _client.GetIcons();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to get icons");
-            throw;
-        }
-    }
+    //public async Task<List<SvgFileInfo>> GetIcons()
+    //{
+    //    try
+    //    {
+    //        return await _client.GetIcons();
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Failed to get icons");
+    //        throw;
+    //    }
+    //}
 }

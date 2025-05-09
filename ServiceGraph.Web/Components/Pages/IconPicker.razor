@@ -1,8 +1,10 @@
-﻿@using Newtonsoft.Json
+﻿@using System.Net
 @using System.Text.RegularExpressions
-@using System.Net
+@using Newtonsoft.Json
+@using ServiceGraph.Web.Services
 @inject IJSRuntime JS
 @inject ISyncService syncService;
+@inject SvgFileCache svgFileCahce;
 
 <div class="modal fade" id="iconPickerModal" tabindex="-1" role="dialog" aria-labelledby="myModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
@@ -109,7 +111,7 @@
     protected override async Task OnInitializedAsync()
     {
         // Load your icons. This could be from an API call or static data
-        allIcons = await syncService.GetIcons(); // Assuming you have a service client that returns your icons
+        allIcons = svgFileCahce.Search("*"); // Assuming you have a service client that returns your icons
         filteredIcons = allIcons.Take(20); // Start with all icons
     }
 
