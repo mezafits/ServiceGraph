@@ -2,9 +2,9 @@
 @inject ISyncService syncService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JSRuntime
-@inject ServiceClient serviceClient;
+@inject IServiceClient serviceClient;
 @using Newtonsoft.Json;
- 
+@using System.Text; 
 
 <script>
     function saveAsFile(filename, bytesBase64) {
@@ -318,14 +318,16 @@
     private async Task exportProject()
     {
         var selectedProject = await syncService.GetSelectedProjectAsync();
-        var httpResponse = await serviceClient.ExportProjectAsync(selectedProject.Id.ToString());
-        using var stream = await httpResponse.Content.ReadAsStreamAsync();
+        var project = await serviceClient.ExportProjectAsync(selectedProject.Id);
 
-        // Code to trigger the file download in the browser
-        await using var memoryStream = new MemoryStream();
-        await stream.CopyToAsync(memoryStream);
-        var content = memoryStream.ToArray();
+        // Serialize the project object to JSON
+        var json = Newtonsoft.Json.JsonConvert.SerializeObject(project);
+
+        // Convert JSON string to byte array
+        var content = Encoding.UTF8.GetBytes(json);
         var filename = "Project.json";
+
+        // Use JS interop to trigger the download
         await JSRuntime.InvokeVoidAsync("saveAsFile", filename, Convert.ToBase64String(content));
     }
 }

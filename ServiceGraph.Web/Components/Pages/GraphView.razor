@@ -1,7 +1,12 @@
-﻿@inject ISyncService syncService;
+﻿@using ServiceGraph.Web.Services
+@inject ISyncService syncService;
 @inject ILogger<GraphView> Logger;
 @inject NavigationManager Navigation
+@inject SvgFileCache svgFileCahce;
+@* @inject IconsUtility iconsUtility; *@
 @* @inject IKustoQueryService kustoQueryService; *@
+
+
 <style>
     .leftToolBar {
     display: flex;
@@ -85,7 +90,7 @@
        {
            if (firstRender)
            {
-               svgFiles = await syncService.GetIcons();
+               svgFiles = svgFileCahce.Search("*");
                objRef = DotNetObjectReference.Create(this);
                await JS.InvokeAsync<string>("SetIconCollection", svgFiles);
                await JS.InvokeAsync<string>("SetDotNetObjectRef", objRef);
