@@ -103,6 +103,12 @@
                                         </div>
                                         <pre class="metadata-code"><code>@item.TagValue</code></pre>
                                         break;
+                                    case "Property":
+                                        <div>
+                                            <span>@item.TagName</span>
+                                            <span>@item.TagValue</span>
+                                        </div>
+                                        break;
                                     default:
                                         <p>@item.TagValue</p>
                                         break;
@@ -136,14 +142,27 @@
                                     <option value="Link">Link</option>
                                     <option value="Text">Text</option>
                                     <option value="Query">Query</option>
+                                    <option value="Property">Property</option>
                                 </InputSelect>
                             </div>
-
-                            <div class="form-group">
+                            @if (selectedMetadata.TagType == "Property")
+                            {
+                                <div class="form-group">
                                 <label>Tag Name</label>
-                                <InputText class="form-control mb-2" @bind-Value="selectedMetadata.TagName" />
-                            </div>
-
+                                <InputSelect class="form-control mb-2" @bind-Value="selectedMetadata.TagName">
+                                    <option value="Geneva Account">Geneva Account</option>
+                                    <option value="Geneva Namespace">Geneva Namespace</option>
+                                    <option value="TSG">TSG</option>
+                                </InputSelect>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="form-group">
+                                    <label>Tag Name</label>
+                                    <InputText class="form-control mb-2" @bind-Value="selectedMetadata.TagName" />
+                                </div>
+                            }
                             <div class="form-group">
                                 <label>Tag Value</label>
                                 <InputText class="form-control mb-2" @bind-Value="selectedMetadata.TagValue" />
@@ -179,13 +198,28 @@
                                     <option value="Link">Link</option>
                                     <option value="Text">Text</option>
                                     <option value="Query">Query</option>
+                                    <option value="Property">Property</option>
                                 </InputSelect>
                             </div>
 
-                            <div class="form-group">
-                                <label>Tag Name</label>
-                                <InputText class="form-control mb-2" @bind-Value="selectedMetadata.TagName" />
-                            </div>
+                            @if (selectedMetadata.TagType == "Property")
+                            {
+                                <div class="form-group">
+                                    <label>Tag Name</label>
+                                    <InputSelect class="form-control mb-2" @bind-Value="selectedMetadata.TagName">
+                                        <option value="Geneva Account">Geneva Account</option>
+                                        <option value="Geneva Namespace">Geneva Namespace</option>
+                                        <option value="TSG">TSG</option>
+                                    </InputSelect>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="form-group">
+                                    <label>Tag Name</label>
+                                    <InputText class="form-control mb-2" @bind-Value="selectedMetadata.TagName" />
+                                </div>
+                            }
 
                             <div class="form-group">
                                 <label>Tag Value</label>
