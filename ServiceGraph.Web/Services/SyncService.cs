@@ -48,11 +48,11 @@ public class SyncService : ISyncService
                 throw new InvalidOperationException("User is not authenticated");
             }
 
-            // Log all claims
-            foreach (var claim in user.Claims)
-            {
-                _logger.LogInformation("Claim Type: {ClaimType}, Value: {ClaimValue}", claim.Type, claim.Value);
-            }
+            //// Log all claims
+            //foreach (var claim in user.Claims)
+            //{
+            //    _logger.LogInformation("Claim Type: {ClaimType}, Value: {ClaimValue}", claim.Type, claim.Value);
+            //}
 
             // Attempt to determine _userName
             _userName = user.Identity.Name
