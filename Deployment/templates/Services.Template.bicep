@@ -16,9 +16,6 @@ param cosmosDbContainerName string = 'servicegraph'
 @description('App Service plan SKU (e.g., "S1")')
 param appServicePlanSku string = 'S1'
 
-@description('Api Package for deployment')
-param apiBinaries string
-
 @description('Web Package for deployment')
 param webBinaries string
 
@@ -40,38 +37,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
   }
 }
 
-resource apiAppService 'Microsoft.Web/sites@2022-03-01' = {
-  name: '${namePrefix}-api'
-  location: location
-  properties: {
-    serverFarmId: appServicePlan.id
-    siteConfig: {
-      appSettings: [
-        {
-          name: 'DB__ConnectionString'
-          value: cosmosDbAccount.listConnectionStrings().connectionStrings[0].connectionString
-        }
-        {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appInsights.properties.InstrumentationKey
-        }
-        {
-          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: appInsights.properties.ConnectionString
-        }
-        {
-          name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
-          value: '~3'
-        }
 
-      ]
-    }
-  }
-  dependsOn: [
-    appServicePlan
-    cosmosDbAccount
-  ]
-}
 
 // Resource: Log Analytics Workspace (for workspace-based Application Insights)
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
@@ -104,8 +70,8 @@ resource webAppService 'Microsoft.Web/sites@2022-03-01' = {
     siteConfig: {
       appSettings: [
         {
-          name: 'ServiceClient__BaseAddress'
-          value: 'https://${apiAppService.properties.defaultHostName}'
+          name: 'DB__ConnectionString'
+          value: cosmosDbAccount.listConnectionStrings().connectionStrings[0].connectionString
         }
         {
           name:'AzureAd__Domain'
@@ -148,7 +114,6 @@ resource webAppService 'Microsoft.Web/sites@2022-03-01' = {
   }
   dependsOn: [
     appServicePlan
-    apiAppService
   ]
 }
 
@@ -210,15 +175,5 @@ resource webDeploy 'Microsoft.Web/sites/extensions@2023-12-01' = {
   }
 }
 
-resource apiDeploy 'Microsoft.Web/sites/extensions@2023-12-01' = {
-  name: any('ZipDeploy') // https://github.com/Azure/bicep/issues/9024
-  parent: apiAppService
-  properties: {
-    packageUri: apiBinaries
-    appOffline: true
-  }
-}
-
-output apiAppUrl string = 'https://${apiAppService.properties.defaultHostName}'
 output webAppUrl string = 'https://${webAppService.properties.defaultHostName}'
 output cosmosDbEndpoint string = cosmosDbAccount.properties.documentEndpoint

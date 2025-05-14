@@ -3,16 +3,10 @@
   "contentVersion": "1.0.0.0",
   "paths":[
     {
-    "ParameterReference":"apiBinaries"
-    },
-    {
       "ParameterReference":"webBinaries"
     }
   ],
   "parameters": {
-    "apiBinaries": {
-      "value": "bin\\apibin.zip"
-    },
     "webBinaries": {
       "value": "bin\\webbin.zip"
     }

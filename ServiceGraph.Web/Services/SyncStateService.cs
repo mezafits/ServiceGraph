@@ -42,6 +42,7 @@ public class SyncStateService : ISyncStateService
         {
             await _initLock.WaitAsync();
             if (_initialized) return;
+            _logger.LogInformation("Initializing SyncStateService for user {UserName}", userName);
 
             await RefreshProjectsAsync(userName, serviceClient);
             _initialized = true;
@@ -62,13 +63,14 @@ public class SyncStateService : ISyncStateService
     {
         try
         {
+            _logger.LogInformation("Refreshing projects for user {UserName}", userName);
             var projects = await serviceClient.GetProjectsAsync(userName);
             Projects.Clear();
             foreach (var project in projects)
             {
                 Projects[project.Id.ToString()] = project;
             }
-            _logger.LogInformation("Refreshed {Count} projects for user {UserName}", projects.Count, userName);
+            _logger.LogInformation("Refreshed {Count} projects for user {userName}", projects.Count, userName);
         }
         catch (Exception ex)
         {

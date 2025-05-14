@@ -27,18 +27,44 @@ public class SyncService : ISyncService
 
     private async Task EnsureInitializedAsync()
     {
+        _logger.LogInformation("Calling EnsureInitializedAsync");
+
         try
         {
-            if (_client != null) return;
+            //if (_client != null)
+            //{
+            //    _logger.LogInformation("_client already initialized. Skipping initialization.");
+            //    return;
+            //}
 
             var authState = await _authProvider.GetAuthenticationStateAsync();
             var user = authState.User;
 
-            if (!user.Identity.IsAuthenticated)
-                throw new InvalidOperationException("User is not authenticated");
+            _logger.LogInformation("User Identity IsAuthenticated: {IsAuthenticated}", user.Identity?.IsAuthenticated);
+            _logger.LogInformation("User Identity Name: {Name}", user.Identity?.Name ?? "null");
 
-            _userName = user.Identity.Name ?? user.Claims.FirstOrDefault(c => c.Type.Contains("email"))?.Value
+            if (!user.Identity?.IsAuthenticated ?? false)
+            {
+                throw new InvalidOperationException("User is not authenticated");
+            }
+
+            // Log all claims
+            foreach (var claim in user.Claims)
+            {
+                _logger.LogInformation("Claim Type: {ClaimType}, Value: {ClaimValue}", claim.Type, claim.Value);
+            }
+
+            // Attempt to determine _userName
+            _userName = user.Identity.Name
+                ?? user.Claims.FirstOrDefault(c => c.Type.Contains("email", StringComparison.OrdinalIgnoreCase))?.Value
                 ?? throw new InvalidOperationException("Unable to determine user identity");
+
+            if (string.IsNullOrEmpty(_userName))
+            {
+                throw new InvalidOperationException("User name is null or empty");
+            }
+
+            _logger.LogInformation("User name resolved as: {UserName}", _userName);
 
             await _state.InitializeAsync(_userName, _client);
         }
@@ -48,6 +74,7 @@ public class SyncService : ISyncService
             throw;
         }
     }
+
 
     public async Task<List<Project>> GetProjectsAsync()
     {

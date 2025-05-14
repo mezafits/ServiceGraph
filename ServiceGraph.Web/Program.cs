@@ -14,7 +14,8 @@ using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddApplicationInsightsTelemetry();
+
+
 
 builder.Configuration
        .SetBasePath(builder.Environment.ContentRootPath)
@@ -26,28 +27,35 @@ builder.Configuration
         ).
         AddEnvironmentVariables();
 
-
 if (builder.Environment.IsDevelopment())
 {
     builder.Configuration.AddUserSecrets<Program>(); // or any type in the assembly
 }
-// Add service defaults & Aspire components.
 
-var serviceBaseAddress = builder.Configuration
-                               .GetValue<string>("ServiceClient:BaseAddress");
+builder.Services.AddApplicationInsightsTelemetry();
+builder.Logging.AddApplicationInsights();
+builder.Logging.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(
+    "", LogLevel.Information);
+
+// Optional: configure logging to also go to Application Insights
+//builder.Logging.AddApplicationInsights(
+//        configureTelemetryConfiguration: (config) =>
+//            config.ConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"],
+//            configureApplicationInsightsLoggerOptions: (options) => {  }
+//    );
+
+
+
+
+
 builder.Logging.AddConsole();
 
 // Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
-//builder.Services.AddScoped<IKustoQueryService, KustoQueryService>();
-
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddServerSideBlazor().AddCircuitOptions(options => { options.DetailedErrors = true; });
 builder.Services.AddOutputCache();
-
 builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd");
-//.EnableTokenAcquisitionToCallDownstreamApi()
-//.AddInMemoryTokenCaches();
+
 
 var dbSettings = builder.Configuration.GetSection("db").Get<DatabaseSettings>();
 
@@ -59,8 +67,6 @@ builder.Services.AddSingleton<SvgFileCache>();
 builder.Services.AddSingleton(new RepositoryFactory(dbSettings));
 builder.Services.AddControllers();
 builder.Services.AddAuthorizationCore();
-
-//builder.Services.AddHttpClient<IconsUtility>(client=> client.BaseAddress = new(serviceBaseAddress));
 builder.Services.AddFluentUIComponents();
 builder.Services.AddRazorPages().AddMvcOptions(options =>
 {

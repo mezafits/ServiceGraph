@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.35.1.17967",
-      "templateHash": "15839605825489584480"
+      "templateHash": "7407369092951229385"
     }
   },
   "parameters": {
@@ -51,12 +51,6 @@
         "description": "App Service plan SKU (e.g., \"S1\")"
       }
     },
-    "apiBinaries": {
-      "type": "string",
-      "metadata": {
-        "description": "Api Package for deployment"
-      }
-    },
     "webBinaries": {
       "type": "string",
       "metadata": {
@@ -91,40 +85,6 @@
       "properties": {
         "reserved": false
       }
-    },
-    {
-      "type": "Microsoft.Web/sites",
-      "apiVersion": "2022-03-01",
-      "name": "[format('{0}-api', parameters('namePrefix'))]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('{0}-asp', parameters('namePrefix')))]",
-        "siteConfig": {
-          "appSettings": [
-            {
-              "name": "DB__ConnectionString",
-              "value": "[listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDbAccountName')), '2023-04-15').connectionStrings[0].connectionString]"
-            },
-            {
-              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-              "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), '2020-02-02').InstrumentationKey]"
-            },
-            {
-              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-              "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), '2020-02-02').ConnectionString]"
-            },
-            {
-              "name": "ApplicationInsightsAgent_EXTENSION_VERSION",
-              "value": "~3"
-            }
-          ]
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]",
-        "[resourceId('Microsoft.Web/serverfarms', format('{0}-asp', parameters('namePrefix')))]",
-        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDbAccountName'))]"
-      ]
     },
     {
       "type": "Microsoft.OperationalInsights/workspaces",
@@ -162,8 +122,8 @@
         "siteConfig": {
           "appSettings": [
             {
-              "name": "ServiceClient__BaseAddress",
-              "value": "[format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('{0}-api', parameters('namePrefix'))), '2022-03-01').defaultHostName)]"
+              "name": "DB__ConnectionString",
+              "value": "[listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDbAccountName')), '2023-04-15').connectionStrings[0].connectionString]"
             },
             {
               "name": "AzureAd__Domain",
@@ -205,9 +165,9 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', format('{0}-api', parameters('namePrefix')))]",
         "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]",
-        "[resourceId('Microsoft.Web/serverfarms', format('{0}-asp', parameters('namePrefix')))]"
+        "[resourceId('Microsoft.Web/serverfarms', format('{0}-asp', parameters('namePrefix')))]",
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDbAccountName'))]"
       ]
     },
     {
@@ -275,25 +235,9 @@
       "metadata": {
         "description": "MSDeploy packaged application to App Service Staging Slot"
       }
-    },
-    {
-      "type": "Microsoft.Web/sites/extensions",
-      "apiVersion": "2023-12-01",
-      "name": "[format('{0}/{1}', format('{0}-api', parameters('namePrefix')), 'ZipDeploy')]",
-      "properties": {
-        "packageUri": "[parameters('apiBinaries')]",
-        "appOffline": true
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', format('{0}-api', parameters('namePrefix')))]"
-      ]
     }
   ],
   "outputs": {
-    "apiAppUrl": {
-      "type": "string",
-      "value": "[format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('{0}-api', parameters('namePrefix'))), '2022-03-01').defaultHostName)]"
-    },
     "webAppUrl": {
       "type": "string",
       "value": "[format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('{0}-web', parameters('namePrefix'))), '2022-03-01').defaultHostName)]"
