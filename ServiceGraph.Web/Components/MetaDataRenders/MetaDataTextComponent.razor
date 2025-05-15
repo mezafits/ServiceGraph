@@ -1,0 +1,29 @@
+﻿<div class="metadata-item" @onclick="() => OnSelect()">
+    <BlazoredTextEditor>
+        <ToolbarContent><div><span>@metadata.TagName</span></div></ToolbarContent>
+        <EditorContent>
+            <div class="metadata-content">@((MarkupString)metadata.TagValue)</div>
+        </EditorContent>
+    </BlazoredTextEditor>
+</div>
+
+@code {
+    
+    [Parameter]
+    public EventCallback<Metadata> OnSelected { get; set; }
+    //Todo : add event handler that will get called when the object is selected that propagates the event to the parent component
+    public void OnSelect()
+    {
+        if(OnSelected.HasDelegate)
+        {
+            OnSelected.InvokeAsync(metadata);
+        }
+    }
+
+
+    [Parameter]
+    public Metadata metadata { get; set; } = new Metadata();
+
+   
+
+}

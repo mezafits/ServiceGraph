@@ -1,0 +1,27 @@
+﻿<div class="metadata-item" @onclick="() => OnSelect()">
+        <div>
+            <span>@metadata.TagName</span>
+            <span>@metadata.TagValue</span>
+        </div>
+</div>
+
+@code {
+    
+    [Parameter]
+    public EventCallback<Metadata> OnSelected { get; set; }
+    //Todo : add event handler that will get called when the object is selected that propagates the event to the parent component
+    public void OnSelect()
+    {
+        if(OnSelected.HasDelegate)
+        {
+            OnSelected.InvokeAsync(metadata);
+        }
+    }
+
+
+    [Parameter]
+    public Metadata metadata { get; set; } = new Metadata();
+
+   
+
+}

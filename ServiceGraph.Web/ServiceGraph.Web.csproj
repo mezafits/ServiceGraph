@@ -23,7 +23,7 @@
   </ItemGroup>
   <Target Condition="'$(Configuration)'=='Release'" Name="ZipAndPublish" AfterTargets="Publish">
     <Message Text="Creating .zip for $(SolutionDir)" Importance="High" />
-    <Exec Command="ping 127.0.0.1 -n 3 > nul" />
+    <Exec Command="ping 127.0.0.1 -n 3 &gt; nul" />
     <ZipDirectory SourceDirectory="$(SolutionDir)\Deployment\bin\webbin" DestinationFile="$(SolutionDir)\Deployment\bin\webbin.zip" Overwrite="true" />
   </Target>
    
