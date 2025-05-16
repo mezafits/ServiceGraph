@@ -1,29 +1,37 @@
-﻿<div class="metadata-item" @onclick="() => OnSelect()">
-    <BlazoredTextEditor>
-        <ToolbarContent><div><span>@metadata.TagName</span></div></ToolbarContent>
-        <EditorContent>
-            <div class="metadata-content">@((MarkupString)metadata.TagValue)</div>
-        </EditorContent>
-    </BlazoredTextEditor>
-</div>
+﻿<FluentAccordion>
+    @foreach (var item in metadata)
+    {
+        <FluentAccordionItem Heading="@(item.TagName)"  @onclick="() => OnSelect(item)" >
+            <BlazoredTextEditor @ref="@QuillHtml">
+                <EditorContent>
+                    <div class="metadata-content">@((MarkupString)item.TagValue)</div>
+                </EditorContent>
+            </BlazoredTextEditor>
+        </FluentAccordionItem>
+    }
+</FluentAccordion>
 
 @code {
-    
     [Parameter]
     public EventCallback<Metadata> OnSelected { get; set; }
-    //Todo : add event handler that will get called when the object is selected that propagates the event to the parent component
-    public void OnSelect()
+
+    BlazoredTextEditor QuillHtml = new BlazoredTextEditor();
+
+    protected override void OnInitialized()
+    {
+        QuillHtml.ReadOnly = true;
+        
+        base.OnInitialized();
+    }
+
+    public void OnSelect(Metadata item)
     {
         if(OnSelected.HasDelegate)
         {
-            OnSelected.InvokeAsync(metadata);
+            OnSelected.InvokeAsync(item);
         }
     }
 
-
     [Parameter]
-    public Metadata metadata { get; set; } = new Metadata();
-
-   
-
+    public List<Metadata> metadata { get; set; } = new List<Metadata>();
 }

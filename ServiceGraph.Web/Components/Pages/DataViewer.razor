@@ -79,29 +79,21 @@
         {
             <FluentTab Id="@group.Key" Label="@group.Key">
                 <div class="tab-content">
-                    @foreach (var item in group)
-                    {
-                        <div>
-                            @switch (item.TagType)
+                            @switch (group.Key)
                             {
                                 case "Link":
-                                    <MetaDataLinkComponent OnSelected=SelectMetadata metadata="@item" />
+                                    <MetaDataLinkComponent OnSelected=SelectMetadata metadata="@group.ToList()" />
                                     break;
                                 case "Text":
-                                    <MetaDataTextComponent OnSelected=SelectMetadata metadata="@item" />
+                                    <MetaDataTextComponent OnSelected=SelectMetadata metadata="@group.ToList()" />
                                     break;
                                 case "Code":
-                                    <MetaDataCodeComponent OnSelected=SelectMetadata metadata="@item" />
+                                    <MetaDataCodeComponent OnSelected=SelectMetadata metadata="@group.ToList()" />
                                     break;
                                 case "Property":
-                                    <MetaDataPropertiesComponent OnSelected=SelectMetadata metadata="@item" />
-                                    break;
-                                default:
-                                    <p>@item.TagValue</p>
+                                    <MetaDataPropertiesComponent OnSelected=SelectMetadata metadata="@group.ToList()" />
                                     break;
                             }
-                        </div>
-                    }
                 </div>
             </FluentTab>
         }

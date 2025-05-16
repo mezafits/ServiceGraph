@@ -1,26 +1,33 @@
-﻿<div class="metadata-item" @onclick="() => OnSelect()">
-        <div>
-        <span>@metadata.TagName</span>
+﻿@foreach (var item in metadata)
+{
+    <div>
+        <div class="metadata-item" @onclick="() => OnSelect(item)">
+            <div>
+                <span>@item.TagName</span>
+            </div>
+            <pre class="metadata-code"><code>@item.TagValue</code></pre>
         </div>
-    <pre class="metadata-code"><code>@metadata.TagValue</code></pre>
-</div>
+
+    </div>
+}
+
 
 @code {
     
     [Parameter]
     public EventCallback<Metadata> OnSelected { get; set; }
     //Todo : add event handler that will get called when the object is selected that propagates the event to the parent component
-    public void OnSelect()
+    public void OnSelect(Metadata item)
     {
         if(OnSelected.HasDelegate)
         {
-            OnSelected.InvokeAsync(metadata);
+            OnSelected.InvokeAsync(item);
         }
     }
 
 
     [Parameter]
-    public Metadata metadata { get; set; } = new Metadata();
+    public List<Metadata> metadata { get; set; } = new List<Metadata>();
 
    
 
