@@ -380,6 +380,17 @@ function executeCommand(ele, command) {
                 }
             });
         }
+        else if (command == 'removefromgroup') {
+            var results = window.dotNetHelper.invokeMethodAsync('GetServiceNodeById', selectedObject);
+            results.then(function (r) {
+                if (confirm("This will remove this node from the group.")) {
+                    var results = window.dotNetHelper.invokeMethodAsync('RemoveServiceNodeFromGroup', selectedObject);
+                    results.then(function (r) {
+                        console.log(r);
+                    });
+                }
+            });
+        }
         else if (command == 'connect') {
             connectSelectedNodes();
         }
@@ -418,6 +429,7 @@ function executeCommand(ele, command) {
 // Create commands for node/edge context menu
 function createCommands(ele) {
     var selectedNodesCount = cy.$('node:selected').length;
+    var selectedNodeIsInGroup = ele.data('parent') != undefined;
 
     var commands = [{
         content: 'Edit',
@@ -445,6 +457,13 @@ function createCommands(ele) {
             executeCommand(ele, 'selecticon');
         }
 
+    },
+    {
+        content: 'Remove From Group',
+        select: function (ele) {
+            executeCommand(ele, 'removefromgroup');
+        },
+        enabled: (ele.data('type') == 'node' && selectedNodeIsInGroup)
     },
     {
         content: 'Remove',

@@ -64,7 +64,14 @@ namespace ServiceGraph.Common
             // Remove the node from the list of nodes
             nodes.RemoveAll(n => n.Id == node.Id);
         }
+        public void RemoveServiceNodeFromGroup(ServiceNode node)
+        {
+            if (node == null)
+                return;
 
+            var nodeIndex = nodes.FindIndex(n => n.Id == node.Id);
+            nodes[nodeIndex].ParentId = nodes[nodeIndex].Id;
+        }
         public void RemoveEdge(Edge edge)
         {
             if (edge == null)

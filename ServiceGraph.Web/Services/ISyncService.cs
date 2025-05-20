@@ -8,6 +8,8 @@ public interface ISyncService
     Task UpsertServiceNodeAsync(ServiceNode node);
     Task UpsertEdgeAsync(Edge edge);
     Task RemoveServiceNodeAsync(ServiceNode node);
+
+    Task RemoveServiceNodeFromGroupAsync(ServiceNode node);
     Task RemoveEdgeAsync(Edge edge);
     Task<ServiceNode> AddServiceNodeToGroupAsync(Guid projectId, Guid parentId, Guid serviceNodeId);
     Task<ServiceNode> GetServiceNodeAsync(ServiceNode node);

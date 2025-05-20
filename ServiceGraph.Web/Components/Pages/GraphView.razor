@@ -103,6 +103,28 @@
         base.OnAfterRender(firstRender);
     }
 
+
+    [JSInvokable]
+    public async Task<string> RemoveServiceNodeFromGroup(ServiceNode id)
+    {
+        try
+        {
+            Logger.LogInformation($"Removing node {id} from group.");
+
+            await syncService.RemoveServiceNodeFromGroupAsync(id);
+
+            Logger.LogInformation($"Remove successful for node {id}.");
+
+            Refresh();
+            return $"Remove successful for node {id}.";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"Error removing node {id}: {ex.Message}");
+            return Newtonsoft.Json.JsonConvert.SerializeObject(new { error = ex.Message });
+        }
+    }
+
     [JSInvokable]
     public async Task<string> RemoveServiceNode(ServiceNode id)
     {

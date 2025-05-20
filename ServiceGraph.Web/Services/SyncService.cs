@@ -191,6 +191,23 @@ public class SyncService : ISyncService
         }
     }
 
+    public async Task RemoveServiceNodeFromGroupAsync(ServiceNode node)
+    {
+        try
+        {
+            await EnsureInitializedAsync();
+            if (_state.Projects.TryGetValue(node.ProjectId.ToString(), out var project))
+            {
+                project.RemoveServiceNodeFromGroup(node);
+                await _client.UpsertProject(project);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to remove service node {NodeId} from group", node.Id);
+            throw;
+        }
+    }
     public async Task RemoveServiceNodeAsync(ServiceNode node)
     {
         try

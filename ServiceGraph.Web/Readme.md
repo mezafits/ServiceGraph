@@ -1,5 +1,3 @@
-Absolutely! Here’s a more appropriate and actionable version of your TODOs list, written in a standard TODO/task format:
-
 ---
 
 ### Nodes / Edges
@@ -27,5 +25,3 @@ Absolutely! Here’s a more appropriate and actionable version of your TODOs list,
 * [ ] Investigate and fix the issue where adding the "First Party App" node to the "On Behalf Service Group" does not work.
 
 ---
-
-Let me know if you want these grouped or worded differently, or if you need a more formal template (like for GitHub issues)!
