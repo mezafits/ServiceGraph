@@ -2,7 +2,7 @@
 
 ### Nodes / Edges
 
-* [ ] Implement "Remove Node from Group" functionality.
+* [x] Implement "Remove Node from Group" functionality.
 * [ ] Implement "Edit Properties" functionality for nodes and edges.
 * [ ] Change the label "Edit" to "Rename" on nodes and edges.
 * [ ] Add a custom style editor for nodes/edges.

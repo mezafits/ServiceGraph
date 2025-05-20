@@ -429,7 +429,7 @@ function executeCommand(ele, command) {
 // Create commands for node/edge context menu
 function createCommands(ele) {
     var selectedNodesCount = cy.$('node:selected').length;
-    var selectedNodeIsInGroup = ele.data('parent') != undefined;
+    var selectedNodeIsInGroup = (ele.data('parent') != undefined) || (ele.data('parent') == ele.data('id'));
 
     var commands = [{
         content: 'Edit',

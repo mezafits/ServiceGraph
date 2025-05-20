@@ -1,21 +1,21 @@
-﻿ 
+﻿
 @inject ISyncService syncService
 @using Newtonsoft.Json;
-  
+
 <div class="project-selector-container">
     <div class="project-selector hex">
         <div class="project-actions">
-            <FluentAutocomplete AutoComplete="on"
-                                Autofocus="true"
-                                Width="350px"
-                                Placeholder="Select a Node"
-                                OnOptionsSearch="@OnSearchAsync"
-                                MaximumSelectedOptions="5"
-                                OptionText="@(item => item.Name)" 
-                                TOption="ServiceNode"
-                                @bind-SelectedOptions="@selectedNodes"
-                                 />
-                 
+            <FluentAutocomplete @ref=fac AutoComplete="on"
+            Autofocus="true"
+            Width="350px"
+            Placeholder="Select a Node"
+            OnOptionsSearch="@OnSearchAsync"
+            MaximumSelectedOptions="5"
+            OptionText="@(item => item.Name)" 
+            TOption="ServiceNode"
+            @bind-SelectedOptions="@selectedNodes"
+            />
+
             <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="async ()=>{ await ToggleGrid();}" Title="Toggle Grid" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.Grid())" />
             <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="async ()=>{ await ToggleGrid();}" Title="Refresh" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.ArrowClockwise())" />
         </div>
@@ -23,12 +23,14 @@
 </div>
 
 
- 
+
 @code {
 
     [Parameter] public EventCallback<string> Complete { get; set; }
     IEnumerable<ServiceNode> selectedNodes = Array.Empty<ServiceNode>();
     IEnumerable<ServiceNode> nodes = Array.Empty<ServiceNode>();
+
+    FluentAutocomplete<ServiceNode> fac = new FluentAutocomplete<ServiceNode>();
     protected async Task ToggleGrid()
     {
         await Complete.InvokeAsync("Toggle Grid");
@@ -41,7 +43,15 @@
     }
     protected override async Task OnInitializedAsync()
     {
-      
+
+    }
+
+    public async Task NodeSelected(ServiceNode node)
+    {
+        selectedNodes = Array.Empty<ServiceNode>();
+        selectedNodes = selectedNodes.Append(node);
+        StateHasChanged();
+
     }
     
     // Add this to your _Host.cshtml or your JavaScript file

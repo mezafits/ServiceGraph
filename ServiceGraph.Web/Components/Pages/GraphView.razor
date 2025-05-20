@@ -26,7 +26,7 @@
             <ProjectMenu Complete="ProjectActionComplete"></ProjectMenu>
         </div>
         <div class="col d-flex gap-1">
-            <GridControlMenu Complete="HandleGridControlComplete"></GridControlMenu>
+            <GridControlMenu @ref=GridControlMenu Complete="HandleGridControlComplete"></GridControlMenu>
         </div>
         <div class="col-auto">
             <LoginDisplay />
@@ -62,7 +62,7 @@
     EditEdge editEdgeModal = new EditEdge();
     DataViewer metaDataViewer = new DataViewer();
     IconPicker iconPicker = new IconPicker();
-
+    GridControlMenu GridControlMenu = new GridControlMenu();
     [Inject]
     IJSRuntime JS { get; set; }
 
@@ -179,6 +179,7 @@
         if (elementType == "node")
         {
             var ele = selectedProject.nodes.Where(x => x.Id == Guid.Parse(elementId)).SingleOrDefault();
+            await GridControlMenu.NodeSelected(ele);
             await metaDataViewer.ViewServiceNode(ele);
         }
 
