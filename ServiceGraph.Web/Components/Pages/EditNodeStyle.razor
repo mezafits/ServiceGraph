@@ -1,0 +1,77 @@
+﻿ ```razor
+@inject ISyncService syncService;
+@inject IJSRuntime JS;
+
+<style>
+    .form-group label {
+        font-weight: 600;
+    }
+</style>
+
+<div class="modal fade" id="editNodeStyleModal" tabindex="-1" role="dialog" aria-labelledby="myModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="myModalTitle">Edit Node Styles</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="@serviceNode">
+                    <div class="form-group">
+                        <label>Normal Text Color</label>
+                        <input type="color" class="form-control" @bind="serviceNode.Style.Color" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Normal Background Color</label>
+                        <input type="color" class="form-control" @bind="serviceNode.Style.BackgroundColor" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Normal Border Color</label>
+                        <input type="color" class="form-control" @bind="serviceNode.Style.BorderColor" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Selected Text Color</label>
+                        <input type="color" class="form-control" @bind="serviceNode.Style.SelectedColor" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Selected Background Color</label>
+                        <input type="color" class="form-control" @bind="serviceNode.Style.SelectedBackgroundColor" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Selected Border Color</label>
+                        <input type="color" class="form-control" @bind="serviceNode.Style.SelectedBorderColor" />
+                    </div>
+                </EditForm>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="SaveServiceNode" data-dismiss="modal">Save Changes</button>
+                <button type="button" class="btn btn-secondary" @onclick="@(() => Complete.InvokeAsync("Canceled"))" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<string> Complete { get; set; }
+
+    private ServiceNode serviceNode = new ServiceNode { Style = new ServiceNodeStyle() };
+
+    public void SetServiceNode(ServiceNode node)
+    {
+        serviceNode = node;
+        StateHasChanged();
+    }
+
+    private async Task SaveServiceNode()
+    {
+        await syncService.UpsertServiceNodeAsync(serviceNode);
+    }
+}
+```

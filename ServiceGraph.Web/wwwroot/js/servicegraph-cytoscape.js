@@ -360,6 +360,14 @@ function executeCommand(ele, command) {
                 myModal.show(r);
             });
         }
+        else if (command == 'editNodeStyle') {
+            var results = window.dotNetHelper.invokeMethodAsync('GetServiceNodeById', selectedObject);
+            results.then(function (r) {
+                console.log(r);
+                var myModal = new bootstrap.Modal(document.getElementById('editNodeStyleModal'));
+                myModal.show(r);
+            });
+        }
         else if (command == 'selecticon') {
             //this is calling a .net function and returning the results.
             var results = window.dotNetHelper.invokeMethodAsync('GetServiceNodeById', selectedObject);
@@ -436,6 +444,13 @@ function createCommands(ele) {
         select: function (ele) {
             executeCommand(ele, 'edit');
         }
+    },
+    {
+        content: 'Edit Style',
+        select: function (ele) {
+            executeCommand(ele, 'editNodeStyle');
+        },
+        enabled: (ele.data('type') == 'node')
     },
     {
         content: 'Connect',
