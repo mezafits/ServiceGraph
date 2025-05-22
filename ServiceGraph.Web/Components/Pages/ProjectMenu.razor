@@ -37,8 +37,9 @@
             <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="ShowImportModal" Title="Import Project" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.ArrowImport())" />
 
             <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="exportProject" Title="Export Project" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.ArrowExport())" />
-         
-       
+
+            <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="ShowNodeStyleModal" Title="Edit Node Style" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.ArrowExport())" />
+
         </div>
     </div>
 </div>
@@ -157,6 +158,19 @@
             }
         }
     }
+
+    private async Task ShowNodeStyleModal()
+    {
+        if (Guid.TryParse(selectedProjectId, out Guid projectId) && projectId != Guid.Empty)
+        {
+            selectedProject = projects.FirstOrDefault(p => p.Id.ToString() == selectedProjectId);
+            if (selectedProject != null)
+            {
+                await JSRuntime.InvokeVoidAsync("showModal", "editEdgeStyleModal");
+            }
+        }
+    }
+
     private async Task ShowCreateModal()
     {
 

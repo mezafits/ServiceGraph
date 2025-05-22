@@ -1,0 +1,95 @@
+﻿@inject ISyncService syncService;
+@inject IJSRuntime JS;
+
+<div class="modal fade" id="editEdgeStyleModal" tabindex="-1" role="dialog" aria-labelledby="myModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="myModalTitle">Edit Edge</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="@Edge">
+
+                    <div class="form-group">
+                        <label>Source Arrow Shape</label>
+                        <InputSelect class="form-control" @bind-Value="Edge.Style.SourceArrowShape">
+                            <option value="none">None</option>
+                            <option value="triangle">Triangle</option>
+                            <option value="vee">Vee</option>
+                            <option value="circle">Circle</option>
+                            <option value="tee">Tee</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Target Arrow Shape</label>
+                        <InputSelect class="form-control" @bind-Value="Edge.Style.TargetArrowShape">
+                            <option value="none">None</option>
+                            <option value="triangle">Triangle</option>
+                            <option value="vee">Vee</option>
+                            <option value="circle">Circle</option>
+                            <option value="tee">Tee</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Line Dash Pattern</label>
+                        <InputSelect class="form-control" @bind-Value="Edge.Style.LineDashPattern">
+                            <option value="[]">Solid</option>
+                            <option value="[4,4]">Dashed</option>
+                            <option value="[1,2]">Dotted</option>
+                            <option value="[10,4,2,4]">Dash-dot</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Line Cap</label>
+                        <InputSelect class="form-control" @bind-Value="Edge.Style.LineCap">
+                            <option value="butt">Butt</option>
+                            <option value="round">Round</option>
+                            <option value="square">Square</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Line Style</label>
+                        <InputSelect class="form-control" @bind-Value="Edge.Style.LineStyle">
+                            <option value="solid">Solid</option>
+                            <option value="dotted">Dotted</option>
+                            <option value="dashed">Dashed</option>
+                        </InputSelect>
+                    </div>
+                </EditForm>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="SaveEdge" data-dismiss="modal">Save Changes</button>
+                <button type="button" class="btn btn-secondary" @onclick="@(() => Complete.InvokeAsync("Canceled"))" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<string> Complete { get; set; }
+
+    private Edge Edge = new Edge
+        {
+            Metadata = new List<Metadata>(),
+            Style = new EdgeStyle()
+        };
+
+    public void SetEdge(Edge edge)
+    {
+        Edge = edge;
+        StateHasChanged();
+    }
+
+    private async Task SaveEdge()
+    {
+        await syncService.UpsertEdgeAsync(Edge);
+        await Complete.InvokeAsync("Saved");
+    }
+}

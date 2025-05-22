@@ -45,6 +45,7 @@
 
     <EditNode @ref=editModal Complete="Refresh"></EditNode>
     <EditEdge @ref=editEdgeModal Complete="Refresh"></EditEdge>
+    <EditEdgeStyle @ref=editEdgeStyleModal Complete="Refresh"></EditEdgeStyle>
     <IconPicker @ref=iconPicker IconSelectedEvent="Refresh"></IconPicker>
 </div>
 
@@ -60,6 +61,7 @@
 
     EditNode editModal = new EditNode();
     EditEdge editEdgeModal = new EditEdge();
+    EditEdgeStyle editEdgeStyleModal = new EditEdgeStyle();
     DataViewer metaDataViewer = new DataViewer();
     IconPicker iconPicker = new IconPicker();
     GridControlMenu GridControlMenu = new GridControlMenu();
@@ -312,6 +314,7 @@
     {
         var results = await syncService.GetEdgeAsync(edge);
         editEdgeModal.SetEdge(results);
+        editEdgeStyleModal.SetEdge(results);
         var tp = Newtonsoft.Json.JsonConvert.SerializeObject(results);
         return tp;
     }
@@ -323,6 +326,7 @@
         var tp = Newtonsoft.Json.JsonConvert.SerializeObject(results);
         editModal.SetServiceNode(results);
         iconPicker.SetServiceNode(results);
+
         return tp;
     }
 
