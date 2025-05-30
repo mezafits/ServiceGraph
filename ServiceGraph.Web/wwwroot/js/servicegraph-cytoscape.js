@@ -460,7 +460,7 @@ function createCommands(ele) {
         enabled: (ele.data('type') == 'node' && selectedNodesCount === 2)
     },
     {
-        content: 'Add To Group',
+        content: 'Group',
         select: function (ele) {
             executeCommand(ele, 'group');
         },
@@ -474,7 +474,7 @@ function createCommands(ele) {
 
     },
     {
-        content: 'Remove From Group',
+        content: 'Ungroup',
         select: function (ele) {
             executeCommand(ele, 'removefromgroup');
         },
@@ -661,6 +661,7 @@ function refresh(data_collection) {
                 projectId: node.projectId,
                 id: path.id,
                 name: path.source,
+                label: path.name,
                 source: path.source,
                 target: path.destination,
                 type: 'edge',
