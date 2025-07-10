@@ -3,7 +3,13 @@ using Microsoft.Azure.Cosmos.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using ServiceGraph.Common;
+using Azure.Identity;
 
+/// <summary>
+/// Cosmos DB repository that supports both connection string and Managed Service Identity authentication.
+/// For MSI, configure AccountEndpoint and set UseManagedIdentity=true in DatabaseSettings.
+/// For connection string auth, configure ConnectionString and set UseManagedIdentity=false.
+/// </summary>
 public class CosmosRepository<T> : ICosmosRepository<T> where T : BaseObject
 {
     private readonly CosmosClient _cosmosClient;
@@ -14,7 +20,23 @@ public class CosmosRepository<T> : ICosmosRepository<T> where T : BaseObject
 
     public CosmosRepository(DatabaseSettings settings)
     {
-        _cosmosClient = new CosmosClient(settings.ConnectionString);
+        if (settings.UseManagedIdentity && !string.IsNullOrEmpty(settings.AccountEndpoint))
+        {
+            // Use Managed Service Identity with DefaultAzureCredential
+            // This will automatically use the App Service's managed identity when deployed
+            var credential = new DefaultAzureCredential();
+            _cosmosClient = new CosmosClient(settings.AccountEndpoint, credential);
+        }
+        else if (!string.IsNullOrEmpty(settings.ConnectionString))
+        {
+            // Use connection string for backward compatibility or local development
+            _cosmosClient = new CosmosClient(settings.ConnectionString);
+        }
+        else
+        {
+            throw new InvalidOperationException("Either ConnectionString must be provided, or both AccountEndpoint and UseManagedIdentity must be configured.");
+        }
+        
         _databaseName = settings.DatabaseName;
         _containerId = typeof(T).Name;
     }
