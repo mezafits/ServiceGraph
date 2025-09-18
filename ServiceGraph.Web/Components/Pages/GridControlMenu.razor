@@ -17,6 +17,7 @@
             />
 
             <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="async ()=>{ await ToggleGrid();}" Title="Toggle Grid" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.Grid())" />
+            <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="async ()=>{ await ToggleGridMode();}" Title="Switch Grid Mode (Hex/Square)" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.GridKanban())" />
             <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="async ()=>{ await ToggleGrid();}" Title="Refresh" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.ArrowClockwise())" />
         </div>
     </div>
@@ -34,6 +35,11 @@
     protected async Task ToggleGrid()
     {
         await Complete.InvokeAsync("Toggle Grid");
+    }
+    
+    protected async Task ToggleGridMode()
+    {
+        await Complete.InvokeAsync("Toggle Grid Mode");
     }
     private async Task OnSearchAsync(OptionsSearchEventArgs<ServiceNode> e)
     {

@@ -45,6 +45,9 @@
     <Content Update="wwwroot\js\cytoscape.js-grid.guide.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Update="wwwroot\js\cytoscape-hex-grid.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Update="wwwroot\js\servicegraph-cytoscape.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

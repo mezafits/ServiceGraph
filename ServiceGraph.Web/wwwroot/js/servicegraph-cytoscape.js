@@ -44,7 +44,7 @@ var layoutOptions = {
     minTemp: 1.0
 };
 
-// Grid options configuration
+// Regular Grid options configuration (keeping original for backward compatibility)
 var grid_options = {
     // On/Off Modules
     /* From the following four snap options, at most one should be true at a given time */
@@ -58,7 +58,7 @@ var grid_options = {
     centerToEdgeAlignment: false, // Center to edge alignment
     resize: false, // Adjust node sizes to cell sizes
     parentPadding: false, // Adjust parent sizes to cell sizes by padding
-    drawGrid: true, // Draw grid background
+    drawGrid: false, // Draw grid background (disabled in favor of hex grid)
 
     // General
     gridSpacing: 20, // Distance between the lines of the grid.
@@ -92,6 +92,36 @@ var grid_options = {
     // Parent Padding
     parentSpacing: -1 // -1 to set paddings of parents to gridSpacing
 };
+
+// Hexagonal Grid options configuration
+var hex_grid_options = {
+    // Hexagon grid appearance
+    hexSize: 30,                    // Size of hexagons (radius)
+    hexColor: '#c7d2fe',           // Color of hex grid lines (darker but still subtle)
+    hexLineWidth: 1.0,             // Width of hex grid lines (thinner)
+    showDots: true,                // Show dots at intersections
+    dotColor: '#94a3b8',           // Color of intersection dots (darker gray)
+    dotSize: 2,                    // Size of intersection dots (smaller)
+    hexOpacity: 0.35,              // Opacity of hex grid (more visible)
+    dotOpacity: 0.3,               // Opacity of dots (more transparent)
+    
+    // Grid behavior
+    drawHexGrid: true,             // Draw hexagonal grid background
+    snapToHex: true,               // Snap nodes to hex grid
+    snapToHexCenter: true,         // Snap to hex centers (false = snap to vertices)
+    hexStackOrder: -1,             // Z-index of hex grid
+    
+    // Zoom and pan behavior
+    zoomDash: true,                // Scale grid with zoom
+    panGrid: false,                // Move grid with pan
+    
+    // Performance
+    redrawOnZoom: true,
+    redrawOnPan: false
+};
+
+// Grid mode: 'rectangular', 'hexagonal'
+var currentGridMode = 'hexagonal';
 
 //====================
 // CYTOSCAPE INITIALIZATION
@@ -697,15 +727,75 @@ function refresh(data_collection) {
 
 
 
-    cy.gridGuide(grid_options);
-
+    // Initialize grids based on current mode
+    if (currentGridMode === 'hexagonal') {
+        if (typeof cy.hexGrid === 'function') {
+            cy.hexGrid(hex_grid_options);
+        }
+        // Keep rectangular grid disabled
+        grid_options.drawGrid = false;
+        cy.gridGuide(grid_options);
+    } else {
+        cy.gridGuide(grid_options);
+        // Ensure hex grid is disabled
+        if (typeof cy.hexGrid === 'function') {
+            hex_grid_options.drawHexGrid = false;
+            cy.hexGrid(hex_grid_options);
+        }
+    }
 
     layout.run();
 }
 
 function ChangeOption(option, value) {
-    if (option == "Grid")
-        grid_options.drawGrid = !grid_options.drawGrid;
+    if (option == "Grid") {
+        if (currentGridMode === 'hexagonal') {
+            hex_grid_options.drawHexGrid = !hex_grid_options.drawHexGrid;
+            console.log('Toggling hex grid to:', hex_grid_options.drawHexGrid);
+            if (typeof cy.hexGrid === 'function') {
+                cy.hexGrid(hex_grid_options);
+            } else {
+                console.error('hexGrid function not available');
+            }
+        } else {
+            grid_options.drawGrid = !grid_options.drawGrid;
+            cy.gridGuide(grid_options);
+        }
+    }
+    if (option == "GridMode") {
+        console.log('Switching grid mode from:', currentGridMode);
+        // Switch between grid modes
+        if (currentGridMode === 'rectangular') {
+            currentGridMode = 'hexagonal';
+            console.log('Switching to hexagonal mode');
+            // Disable rectangular grid
+            grid_options.drawGrid = false;
+            cy.gridGuide(grid_options);
+            // Enable hex grid
+            if (typeof cy.hexGrid === 'function') {
+                hex_grid_options.drawHexGrid = true;
+                cy.hexGrid(hex_grid_options);
+                console.log('Hex grid enabled');
+            } else {
+                console.error('hexGrid function not available');
+            }
+        } else {
+            currentGridMode = 'rectangular';
+            console.log('Switching to rectangular mode');
+            // Disable hex grid
+            if (typeof cy.hexGrid === 'function') {
+                hex_grid_options.drawHexGrid = false;
+                cy.hexGrid(hex_grid_options);
+                console.log('Hex grid disabled');
+            } else {
+                console.error('hexGrid function not available');
+            }
+            // Enable rectangular grid
+            grid_options.drawGrid = true;
+            cy.gridGuide(grid_options);
+            console.log('Rectangular grid enabled');
+        }
+    }
 }
 //====================
 // EVENT LISTENERS
@@ -759,8 +849,15 @@ cy.on('mouseup', function (event) {
 // INITIALIZATION
 //====================
 
-// Initialize grid guide
+// Initialize grids
 cy.gridGuide(grid_options);
+
+// Initialize hex grid if extension is available
+if (typeof cy.hexGrid === 'function') {
+    cy.hexGrid(hex_grid_options);
+} else {
+    console.warn('Hex grid extension not available');
+}
 
 // Initialize context menu
 contextMenu(cy);

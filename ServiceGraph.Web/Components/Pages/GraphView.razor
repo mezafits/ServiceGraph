@@ -355,7 +355,14 @@
     public void HandleGridControlComplete(string action)
     {
         Task.Run(async ()=>{ 
-            await JS.InvokeAsync<string>("ChangeOption","Grid","Toggle");
+            if (action == "Toggle Grid Mode")
+            {
+                await JS.InvokeAsync<string>("ChangeOption","GridMode","Toggle");
+            }
+            else
+            {
+                await JS.InvokeAsync<string>("ChangeOption","Grid","Toggle");
+            }
         });
     }
 
