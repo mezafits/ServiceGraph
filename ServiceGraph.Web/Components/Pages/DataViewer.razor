@@ -70,6 +70,47 @@
         gap: 1rem;
     }
 
+    .notes-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        justify-content: flex-start;
+    }
+
+    .font-scale-control {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .font-scale-slider {
+        width: 100px;
+    }
+
+    .scaled-content {
+        font-size: calc(1rem * var(--font-scale, 1));
+    }
+
+    .scaled-content * {
+        font-size: inherit !important;
+    }
+
+    .scaled-content h1 {
+        font-size: calc(1.5rem * var(--font-scale, 1)) !important;
+    }
+
+    .scaled-content h2 {
+        font-size: calc(1.25rem * var(--font-scale, 1)) !important;
+    }
+
+    .scaled-content h3 {
+        font-size: calc(1.1rem * var(--font-scale, 1)) !important;
+    }
+
+    .scaled-content pre, .scaled-content code {
+        font-size: calc(0.9rem * var(--font-scale, 1)) !important;
+    }
+
     .notes-textarea {
         border: 1px solid #ddd;
         border-radius: 4px;
@@ -157,16 +198,23 @@
         <FluentTab Id="Notes" Label="Notes">
             <div class="tab-content">
                 <div class="notes-section">
-                    <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="ToggleNotesEditMode" Title="@(isNotesEditMode ? "Preview" : "Edit")" IconStart="@(isNotesEditMode ? new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.Eye() : new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.Edit())" />
+                    <div class="notes-controls">
+                        <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="ToggleNotesEditMode" Title="@(isNotesEditMode ? "Preview" : "Edit")" IconStart="@(isNotesEditMode ? new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size16.Eye() : new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size16.Edit())" Style="width: auto; min-width: 40px;" />
+                        <div class="font-scale-control">
+                            <FluentLabel Style="font-size: 0.9rem;">Scale:</FluentLabel>
+                            <FluentSlider @bind-Value="fontScale" Min="0.5" Max="2.0" Step="0.1" class="font-scale-slider" />
+                            <FluentLabel Style="font-size: 0.8rem; color: #666;">@(Math.Round(fontScale * 100))%</FluentLabel>
+                        </div>
+                    </div>
                     @if (isNotesEditMode)
                     {
                         <div class="notes-editor">
-                            <textarea @bind="notesMarkdown" class="notes-textarea"></textarea>
+                            <textarea @bind="notesMarkdown" class="notes-textarea scaled-content" style="--font-scale: @fontScale;"></textarea>
                         </div>
                     }
                     else
                     {
-                        <div class="notes-preview">
+                        <div class="notes-preview scaled-content" style="--font-scale: @fontScale;">
                             @((MarkupString)ConvertMarkdownToHtml(notesMarkdown))
                         </div>
                     }
@@ -196,6 +244,7 @@
     private string notesMarkdown = string.Empty;
     private bool isNotesEditMode = false;
     private string activeTabId = "Notes";
+    private double fontScale = 1.0;
     protected override Task OnInitializedAsync()
     {
 
