@@ -79,6 +79,7 @@ builder.Services.AddRazorPages().AddMvcOptions(options =>
 builder.Services.AddScoped<IServiceClient, ServiceClient>();
 builder.Services.AddScoped<ISyncService, SyncService>();
 builder.Services.AddScoped<ISyncStateService,SyncStateService>();
+builder.Services.AddHostedService<DataSeedingHostedService>();
 
 var app = builder.Build();
 
