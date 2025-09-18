@@ -69,11 +69,11 @@
             return { q: rq, r: rr };
         },
         
-        // Get hex vertices in pixel coordinates (pointy-top orientation)
+        // Get hex vertices in pixel coordinates (flat-top orientation)
         getHexVertices: function(centerX, centerY, hexSize) {
             var vertices = [];
             for (var i = 0; i < 6; i++) {
-                var angleDeg = 60 * i - 30; // Offset by 30 degrees for pointy-top
+                var angleDeg = 60 * i; // No offset for flat-top orientation
                 var angleRad = Math.PI / 180 * angleDeg;
                 var x = centerX + hexSize * Math.cos(angleRad);
                 var y = centerY + hexSize * Math.sin(angleRad);
@@ -135,11 +135,11 @@
             var offsetX = options.panGrid ? pan.x : 0;
             var offsetY = options.panGrid ? pan.y : 0;
             
-            // Calculate proper hexagonal tiling dimensions for edge-sharing honeycomb
-            var hexWidth = hexSize * 2;
-            var hexHeight = hexSize * Math.sqrt(3);
-            var horizontalSpacing = hexSize * Math.sqrt(3);  // Distance between hex centers horizontally
-            var verticalSpacing = hexSize * 3/2;  // Distance between hex centers vertically
+            // Calculate proper hexagonal tiling dimensions for edge-sharing honeycomb (flat-top)
+            var hexWidth = hexSize * Math.sqrt(3);
+            var hexHeight = hexSize * 2;
+            var horizontalSpacing = hexSize * 3/2;  // Distance between hex centers horizontally
+            var verticalSpacing = hexSize * Math.sqrt(3);  // Distance between hex centers vertically
             
             // Calculate grid bounds with proper hexagonal tiling
             var startCol = Math.floor((-offsetX - hexSize) / horizontalSpacing) - 1;
@@ -161,9 +161,9 @@
                     var centerX = col * horizontalSpacing + offsetX;
                     var centerY = row * verticalSpacing + offsetY;
                     
-                    // Offset every other row for proper hex tiling (pointy-top hexagons)
-                    if (row % 2 !== 0) {
-                        centerX += horizontalSpacing / 2;
+                    // Offset every other column for proper hex tiling (flat-top hexagons)
+                    if (col % 2 !== 0) {
+                        centerY += verticalSpacing / 2;
                     }
                     
                     // Skip if hex is completely outside canvas

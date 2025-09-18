@@ -142,14 +142,16 @@ var cy = cytoscape({
             style: {
                 'text-margin-y': '5px',
                 'text-valign': 'bottom',
-                'shape': 'round-rectangle',
+                'shape': 'hexagon',
                 'border-width': 1,
                 'border-color': 'rgba(0, 122, 255, 1.0)',
                 'content': 'data(name)',
                 'color': 'white',
                 'text-outline-width': 1,
                 'text-outline-color': 'black',
-                'background-color': 'grey'
+                'background-color': 'grey',
+                'width': 80,
+                'height': 69.28
             }
         },
         {
@@ -157,7 +159,7 @@ var cy = cytoscape({
             style: {
                 'text-margin-y': '5px',
                 'text-valign': 'bottom',
-                'shape': 'round-rectangle',
+                'shape': 'hexagon',
                 'border-width': 1,
                 'border-color': 'rgba(0, 122, 255, 1.0)',
                 'content': 'data(name)',
@@ -168,8 +170,8 @@ var cy = cytoscape({
                 'background-image': function (ele) {
                     return makeSvg(ele).svg;
                 },
-                'width': 50,
-                'height': 50
+                'width': 80,
+                'height': 69.28
             }
         },
         {
@@ -201,9 +203,10 @@ var cy = cytoscape({
             style: {
                 'text-valign': 'top',
                 'text-halign': 'center',
-                'shape': 'round-rectangle',
-                'corner-radius': 5,
-                'padding': 10
+                'shape': 'hexagon',
+                'padding': 10,
+                'width': 90,
+                'height': 77.94
             }
         },
         {
