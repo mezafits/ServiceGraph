@@ -63,157 +63,125 @@
         overflow-x: hidden;
         padding-right: 1rem; /* Optional: space for scrollbar */
     }
+
+    .notes-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .notes-textarea {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 1rem;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        resize: vertical;
+        width: 100%;
+        height: calc(70vh - 120px);
+        box-sizing: border-box;
+        outline: none;
+    }
+
+    .notes-textarea:focus {
+        border-color: #0078d4;
+        box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
+    }
+
+    .notes-preview {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 1rem;
+        background-color: #fafafa;
+        height: calc(70vh - 120px);
+        line-height: 1.6;
+        overflow-y: auto;
+    }
+
+    .notes-preview h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+
+    .notes-preview h2 {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+        margin-top: 1.5rem;
+        color: #555;
+    }
+
+    .notes-preview h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        margin-top: 1rem;
+        color: #666;
+    }
+
+    .notes-preview pre {
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 1rem;
+        overflow-x: auto;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 0.9rem;
+    }
+
+    .notes-preview code {
+        background-color: #f5f5f5;
+        padding: 0.2rem 0.4rem;
+        border-radius: 3px;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 0.9rem;
+    }
+
+    .notes-preview pre code {
+        background-color: transparent;
+        padding: 0;
+    }
+
+    .notes-preview a {
+        color: #0066cc;
+        text-decoration: none;
+    }
+
+    .notes-preview a:hover {
+        text-decoration: underline;
+    }
 </style>
 
 <div class="metadata-container">
-    <div class="project-selector-container">
-        <div class="project-selector hex">
-            <div class="project-actions">
-                <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="async ()=>{ await ShowCreateMetadata(true);}" Title="Add Metadata" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.Add())" />
-                <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="async ()=>{ await ShowCreateMetadata(false);}" Title="Edit Metadata" IconStart="@(new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.Edit())" />
-            </div>
-        </div>
-    </div>
     <FluentTabs @bind-ActiveTabId="@activeTabId">
-        @foreach (var group in MetaDataByType)
-        {
-            <FluentTab Id="@group.Key" Label="@group.Key">
-                <div class="tab-content">
-                            @switch (group.Key)
-                            {
-                                case "Link":
-                                    <MetaDataLinkComponent OnSelected=SelectMetadata metadata="@group.ToList()" />
-                                    break;
-                                case "Text":
-                                    <MetaDataTextComponent OnSelected=SelectMetadata metadata="@group.ToList()" />
-                                    break;
-                                case "Code":
-                                    <MetaDataCodeComponent OnSelected=SelectMetadata metadata="@group.ToList()" />
-                                    break;
-                                case "Property":
-                                    <MetaDataPropertiesComponent OnSelected=SelectMetadata metadata="@group.ToList()" />
-                                    break;
-                            }
+        <FluentTab Id="Notes" Label="Notes">
+            <div class="tab-content">
+                <div class="notes-section">
+                    <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="ToggleNotesEditMode" Title="@(isNotesEditMode ? "Preview" : "Edit")" IconStart="@(isNotesEditMode ? new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.Eye() : new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20.Edit())" />
+                    @if (isNotesEditMode)
+                    {
+                        <div class="notes-editor">
+                            <textarea @bind="notesMarkdown" class="notes-textarea"></textarea>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="notes-preview">
+                            @((MarkupString)ConvertMarkdownToHtml(notesMarkdown))
+                        </div>
+                    }
                 </div>
-            </FluentTab>
-        }
+            </div>
+        </FluentTab>
+        <FluentTab Id="Properties" Label="Properties">
+            <div class="tab-content">
+                <MetaDataPropertiesComponent OnSelected=SelectMetadata metadata="@propertyMetadata" />
+            </div>
+        </FluentTab>
     </FluentTabs>
 </div>
 
 
-<div class="modal fade" id="AddMetaDataModal" tabindex="-1" role="dialog" aria-labelledby="myModalTitle" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="myModalTitle">Edit Edge</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <EditForm Model="@selectedMetadata">
-                    <div class="metadata-container">
-                        <div class="metadata-card">
-                            <div class="form-group">
-                                <label>Tag Type</label>
-                                <InputSelect class="form-control mb-2" @bind-Value="selectedMetadata.TagType">
-                                    <option value="Link">Link</option>
-                                    <option value="Text">Text</option>
-                                    <option value="Query">Query</option>
-                                    <option value="Property">Property</option>
-                                </InputSelect>
-                            </div>
-                            @if (selectedMetadata.TagType == "Property")
-                            {
-                                <div class="form-group">
-                                <label>Tag Name</label>
-                                <InputSelect class="form-control mb-2" @bind-Value="selectedMetadata.TagName">
-                                    <option value="Geneva Account">Geneva Account</option>
-                                    <option value="Geneva Namespace">Geneva Namespace</option>
-                                    <option value="TSG">TSG</option>
-                                </InputSelect>
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="form-group">
-                                    <label>Tag Name</label>
-                                    <InputText class="form-control mb-2" @bind-Value="selectedMetadata.TagName" />
-                                </div>
-                            }
-                            <div class="form-group">
-                                <label>Tag Value</label>
-                                <InputText class="form-control mb-2" @bind-Value="selectedMetadata.TagValue" />
-                            </div>
-                        </div>
-                    </div>
-                </EditForm>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" @onclick="CreateMetadata" data-dismiss="modal">Save Changes</button>
-                <button type="button" class="btn btn-secondary" @onclick="@(() =>{})" data-dismiss="modal">Cancel</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="EdgeMetaDataModal" tabindex="-1" role="dialog" aria-labelledby="myModalTitle" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="myModalTitle">Edit Edge</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <EditForm Model="@selectedMetadata">
-                    <div class="metadata-container">
-                        <div class="metadata-card">
-                            <div class="form-group">
-                                <label>Tag Type</label>
-                                <InputSelect class="form-control mb-2" @bind-Value="selectedMetadata.TagType">
-                                    <option value="Link">Link</option>
-                                    <option value="Text">Text</option>
-                                    <option value="Query">Query</option>
-                                    <option value="Property">Property</option>
-                                </InputSelect>
-                            </div>
-
-                            @if (selectedMetadata.TagType == "Property")
-                            {
-                                <div class="form-group">
-                                    <label>Tag Name</label>
-                                    <InputSelect class="form-control mb-2" @bind-Value="selectedMetadata.TagName">
-                                        <option value="Geneva Account">Geneva Account</option>
-                                        <option value="Geneva Namespace">Geneva Namespace</option>
-                                        <option value="TSG">TSG</option>
-                                    </InputSelect>
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="form-group">
-                                    <label>Tag Name</label>
-                                    <InputText class="form-control mb-2" @bind-Value="selectedMetadata.TagName" />
-                                </div>
-                            }
-
-                            <div class="form-group">
-                                <label>Tag Value</label>
-                                <InputText class="form-control mb-2" @bind-Value="selectedMetadata.TagValue" />
-                            </div>
-                        </div>
-                    </div>
-                </EditForm>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" @onclick="UpdateMetadata" data-dismiss="modal">Save Changes</button>
-                <button type="button" class="btn btn-secondary" @onclick="@(() =>{})" data-dismiss="modal">Cancel</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 
 @code {
@@ -224,8 +192,10 @@
     private List<Metadata> exampleItems;
     private BaseObject baseObject;
     private Metadata selectedMetadata = new Metadata();
-    private IEnumerable<IGrouping<string, Metadata>> MetaDataByType = new List<IGrouping<string, Metadata>>();
-    private string activeTabId = string.Empty;
+    private List<Metadata> propertyMetadata = new List<Metadata>();
+    private string notesMarkdown = string.Empty;
+    private bool isNotesEditMode = false;
+    private string activeTabId = "Notes";
     protected override Task OnInitializedAsync()
     {
 
@@ -234,24 +204,13 @@
             {
                 new Metadata
                 {
-                    TagName = "Website",
-                    TagType = "Link",
-                    TagValue = "https://example.com"
-                },
-                new Metadata
-                {
-                    TagName = "Description",
-                    TagType = "Text",
-                    TagValue = "This is a sample description for illustrative purposes."
-                },
-                new Metadata
-                {
-                    TagName = "Config",
-                    TagType = "Code",
-                    TagValue = "{ \"enabled\": true, \"level\": \"debug\" }"
+                    TagName = "Geneva Account",
+                    TagType = "Property",
+                    TagValue = "sample-account"
                 }
             };
-        MetaDataByType = exampleItems.GroupBy(x => x.TagType);
+        propertyMetadata = exampleItems.Where(x => x.TagType == "Property").ToList();
+        notesMarkdown = "# Notes\n\nAdd your notes here...";
 
 
 
@@ -264,90 +223,7 @@
         selectedMetadata = item;
     }
 
-    private void CreateMetadata()
-    {
-        selectedMetadata.Id = Guid.NewGuid();
-        if (BSOType == "ServiceNode")
-        {
-            var serviceNode = baseObject as ServiceNode;
-            if (serviceNode != null)
-            {
-                serviceNode.Metadata.Add(selectedMetadata);
-                baseObject = serviceNode;
-            }
-            syncService.UpsertServiceNodeAsync(serviceNode);
-        }
-        else if (BSOType == "Edge")
-        {
-            var edge = baseObject as Edge;
-            if (edge != null)
-            {
-                edge.Metadata.Add(selectedMetadata);
-                baseObject = edge;
-            }
-            syncService.UpsertEdgeAsync(edge);
-        }
-        else if (BSOType == "Project")
-        {
-            var project = baseObject as Project;
-            if (project != null)
-            {
-                project.Metadata.Add(selectedMetadata);
-                baseObject = project;
-            }
-            syncService.UpsertProjectAsync(project);
-        }
-    }
-    
-    private void UpdateMetadata()
-    {
-        
-        if (BSOType == "ServiceNode")
-        {
-            var serviceNode = baseObject as ServiceNode;
-            if (serviceNode != null)
-            {
-                var index = serviceNode.Metadata.FindIndex(m => m.Id == selectedMetadata.Id);
-                serviceNode.Metadata[index] = selectedMetadata;
-                syncService.UpsertServiceNodeAsync(serviceNode);
-            }
-            
-        }
-        else if (BSOType == "Edge")
-        {
-            var edge = baseObject as Edge;
-            if (edge != null)
-            {
-                var index = edge.Metadata.FindIndex(m => m.Id == selectedMetadata.Id);
-                edge.Metadata[index] = selectedMetadata;
-                syncService.UpsertEdgeAsync(edge);
-            }
-            
-        }
-        else if (BSOType == "Project")
-        {
-            var project = baseObject as Project;
-            if (project != null)
-            {
-                var index = project.Metadata.FindIndex(m => m.Id == selectedMetadata.Id);
-                project.Metadata[index] = selectedMetadata;
-                syncService.UpsertProjectAsync(project);
-            }
 
-        }
-    }
-
-    private async Task ShowCreateMetadata(bool createNew)
-    {
-        if(createNew)
-        {
-            await JSRuntime.InvokeVoidAsync("showModal", "AddMetaDataModal");
-        }
-        else
-        {
-            await JSRuntime.InvokeVoidAsync("showModal", "EdgeMetaDataModal");
-        }
-    }
 
     public async Task ViewServiceNode(ServiceNode node)
     {
@@ -369,24 +245,92 @@
     private async Task ViewMetaData(BaseObject bso)
     {
         baseObject = bso;
-        var items = bso.Metadata;
-        if (items != null && items.Count > 0)
+        var items = bso.Metadata ?? new List<Metadata>();
+        
+        // Separate properties from other metadata
+        propertyMetadata = items.Where(x => x.TagType == "Property").ToList();
+        
+        // Combine all non-property metadata into markdown
+        var notesItems = items.Where(x => x.TagType != "Property").ToList();
+        notesMarkdown = ConvertMetadataToMarkdown(notesItems);
+        
+        if (string.IsNullOrEmpty(notesMarkdown))
         {
-            metadataItems = items;
-            MetaDataByType = items.GroupBy(x => x.TagType);
+            notesMarkdown = "# Notes\n\nAdd your notes here...";
         }
-        else
-        {
-            MetaDataByType = exampleItems.GroupBy(x => x.TagType);
-        }
-
-        // Set the active tab to the first tab if available
-        var firstGroup = MetaDataByType.FirstOrDefault();
-        if (firstGroup != null)
-        {
-            activeTabId = firstGroup.Key;
-        }
-
+        
         StateHasChanged();
+    }
+    
+    private string ConvertMetadataToMarkdown(List<Metadata> metadata)
+    {
+        if (!metadata.Any()) return string.Empty;
+        
+        var markdown = new System.Text.StringBuilder();
+        
+        foreach (var item in metadata)
+        {
+            switch (item.TagType?.ToLower())
+            {
+                case "link":
+                    markdown.AppendLine($"## {item.TagName}");
+                    markdown.AppendLine($"[{item.TagName}]({item.TagValue})");
+                    markdown.AppendLine();
+                    break;
+                case "text":
+                    markdown.AppendLine($"## {item.TagName}");
+                    markdown.AppendLine(item.TagValue);
+                    markdown.AppendLine();
+                    break;
+                case "code":
+                    markdown.AppendLine($"## {item.TagName}");
+                    markdown.AppendLine("```");
+                    markdown.AppendLine(item.TagValue);
+                    markdown.AppendLine("```");
+                    markdown.AppendLine();
+                    break;
+                default:
+                    markdown.AppendLine($"## {item.TagName}");
+                    markdown.AppendLine(item.TagValue);
+                    markdown.AppendLine();
+                    break;
+            }
+        }
+        
+        return markdown.ToString();
+    }
+    
+    private string ConvertMarkdownToHtml(string markdown)
+    {
+        if (string.IsNullOrEmpty(markdown)) return string.Empty;
+        
+        // Simple markdown to HTML conversion
+        var html = markdown
+            .Replace("\n", "<br/>")
+            .Replace("# ", "<h1>").Replace("<br/><h1>", "</h1><h1>")
+            .Replace("## ", "<h2>").Replace("<br/><h2>", "</h2><h2>")
+            .Replace("### ", "<h3>").Replace("<br/><h3>", "</h3><h3>");
+            
+        // Handle code blocks
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"```(.*?)```", "<pre><code>$1</code></pre>", System.Text.RegularExpressions.RegexOptions.Singleline);
+        
+        // Handle links
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"\[([^\]]+)\]\(([^)]+)\)", "<a href=\"$2\" target=\"_blank\">$1</a>");
+        
+        return html;
+    }
+    
+    private void ToggleNotesEditMode()
+    {
+        isNotesEditMode = !isNotesEditMode;
+    }
+    
+    private void RefreshData()
+    {
+        if (baseObject != null)
+        {
+            propertyMetadata = baseObject.Metadata?.Where(x => x.TagType == "Property").ToList() ?? new List<Metadata>();
+            StateHasChanged();
+        }
     }
 }
