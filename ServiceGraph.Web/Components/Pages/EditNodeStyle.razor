@@ -1,5 +1,4 @@
-﻿ ```razor
-@inject ISyncService syncService;
+﻿ @inject ISyncService syncService;
 @inject IJSRuntime JS;
 
 <style>
@@ -74,4 +73,3 @@
         await syncService.UpsertServiceNodeAsync(serviceNode);
     }
 }
-```
