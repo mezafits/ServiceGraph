@@ -97,13 +97,13 @@ var grid_options = {
 var hex_grid_options = {
     // Hexagon grid appearance
     hexSize: 30,                    // Size of hexagons (radius)
-    hexColor: '#c7d2fe',           // Color of hex grid lines (darker but still subtle)
-    hexLineWidth: 1.0,             // Width of hex grid lines (thinner)
+    hexColor: '#8b5cf6',           // Neon purple hex grid lines
+    hexLineWidth: 1.5,             // Width of hex grid lines (slightly thicker for visibility)
     showDots: true,                // Show dots at intersections
-    dotColor: '#94a3b8',           // Color of intersection dots (darker gray)
-    dotSize: 2,                    // Size of intersection dots (smaller)
-    hexOpacity: 0.35,              // Opacity of hex grid (more visible)
-    dotOpacity: 0.3,               // Opacity of dots (more transparent)
+    dotColor: '#a855f7',           // Neon purple intersection dots
+    dotSize: 3,                    // Size of intersection dots (larger for visibility)
+    hexOpacity: 0.4,               // Opacity of hex grid (more visible with neon)
+    dotOpacity: 0.6,               // Opacity of dots (more visible)
     
     // Grid behavior
     drawHexGrid: true,             // Draw hexagonal grid background
@@ -144,12 +144,12 @@ var cy = cytoscape({
                 'text-valign': 'bottom',
                 'shape': 'hexagon',
                 'border-width': 1,
-                'border-color': 'rgba(0, 122, 255, 1.0)',
+                'border-color': '#8b5cf6',
                 'content': 'data(name)',
                 'color': 'white',
                 'text-outline-width': 1,
-                'text-outline-color': 'black',
-                'background-color': 'grey',
+                'text-outline-color': '#000000',
+                'background-color': 'rgba(255, 255, 255, 0.1)',
                 'width': 80,
                 'height': 69.28
             }
@@ -161,12 +161,12 @@ var cy = cytoscape({
                 'text-valign': 'bottom',
                 'shape': 'hexagon',
                 'border-width': 1,
-                'border-color': 'rgba(0, 122, 255, 1.0)',
+                'border-color': '#8b5cf6',
                 'content': 'data(name)',
                 'color': 'white',
                 'text-outline-width': 1,
-                'text-outline-color': 'black',
-                'background-color': 'white',
+                'text-outline-color': '#000000',
+                'background-color': 'rgba(255, 255, 255, 0.9)',
                 'background-image': function (ele) {
                     return makeSvg(ele).svg;
                 },
@@ -179,8 +179,20 @@ var cy = cytoscape({
             style: {
                 'width': 'data(width)',
                 'curve-style': 'data(curveStyle)',
-                'line-color': 'data(lineColor)',
-                'line-style': 'data(lineStyle)'
+                'line-color': function(ele) {
+                    var color = ele.data('lineColor');
+                    return (color && color !== '#000000' && color !== 'black') ? color : '#60a5fa';
+                },
+                'line-style': 'data(lineStyle)',
+                'target-arrow-color': function(ele) {
+                    var color = ele.data('lineColor');
+                    return (color && color !== '#000000' && color !== 'black') ? color : '#60a5fa';
+                },
+                'source-arrow-color': function(ele) {
+                    var color = ele.data('lineColor');
+                    return (color && color !== '#000000' && color !== 'black') ? color : '#60a5fa';
+                },
+                'opacity': 0.8
             }
         },
         {
@@ -193,9 +205,13 @@ var cy = cytoscape({
         {
             selector: ':selected',
             style: {
-                'background-color': 'rgba(0,122,255,1.0)',
-                'source-arrow-color': 'rgba(0,122,255,1.0)',
-                'text-outline-color': 'rgba(0,122,255,1.0)'
+                'background-color': '#8b5cf6',
+                'border-color': '#a855f7',
+                'line-color': '#8b5cf6',
+                'source-arrow-color': '#8b5cf6',
+                'target-arrow-color': '#8b5cf6',
+                'text-outline-color': '#8b5cf6',
+                'opacity': 1
             }
         },
         {
@@ -700,7 +716,7 @@ function refresh(data_collection) {
                 type: 'edge',
                 width: path.style.width,
                 curveStyle: path.style.curveStyle,
-                lineColor: path.style.lineColor,
+                lineColor: path.style.lineColor || '#60a5fa',
                 lineStyle: path.style.lineStyle,
                 //lineCap: path.style.lineCap,
                 //lineDashPattern: path.style.lineDashPattern,

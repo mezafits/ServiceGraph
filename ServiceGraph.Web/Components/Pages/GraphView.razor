@@ -9,33 +9,140 @@
 
 <style>
     .leftToolBar {
-    display: flex;
-    width: 250px;
+        display: flex;
+        width: 250px;
     }
 
     .meta-data {
-    border-left: 1px solid blue; /* 1px blue border on the left */
-    border-right: 1px solid blue; /* 1px  blue border on the right */
+        border-left: 1px solid var(--neon-blue-start);
+        border-right: 1px solid var(--neon-blue-start);
+        box-shadow: 0 0 10px var(--neon-blue-glow);
     }
 
+    /* Floating Header Panel */
+    .header-panel {
+        background: var(--glass-bg);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid var(--neon-purple-start);
+        border-radius: var(--border-radius-md);
+        box-shadow: 
+            0 4px 16px rgba(0, 0, 0, 0.3),
+            0 0 15px var(--neon-purple-glow);
+        margin: var(--space-md) var(--space-lg) var(--space-sm) var(--space-lg);
+        padding: var(--space-md);
+        position: relative;
+        z-index: 100;
+    }
+
+    .header-panel::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, 
+            rgba(139, 92, 246, 0.02) 0%, 
+            rgba(168, 85, 247, 0.02) 50%,
+            rgba(139, 92, 246, 0.02) 100%);
+        border-radius: var(--border-radius-lg);
+        pointer-events: none;
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .header-section {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+        flex-wrap: wrap;
+    }
+
+    .header-section .col {
+        background: transparent;
+        border: none;
+        border-radius: var(--border-radius-md);
+        padding: var(--space-sm);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    .header-section .col:hover {
+        background: rgba(255, 255, 255, 0.03);
+        transition: all var(--transition-normal);
+    }
+
+    .header-section .col-auto {
+        margin-left: auto;
+    }
+
+    /* Enhanced Cytoscape Container */
+    .cytoscape-container {
+        background: var(--bg-gradient-secondary);
+        border: 1px solid var(--neon-purple-start);
+        border-radius: var(--border-radius-md);
+        box-shadow: 
+            inset 0 0 20px rgba(0, 0, 0, 0.2),
+            0 0 10px var(--neon-purple-glow);
+        position: relative;
+        overflow: hidden;
+        margin: 0 var(--space-lg) var(--space-md) var(--space-lg);
+    }
+
+    .cytoscape-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 50%, var(--neon-purple-glow) 0%, transparent 50%),
+            radial-gradient(circle at 80% 50%, var(--neon-blue-glow) 0%, transparent 50%);
+        opacity: 0.1;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    #cy {
+        position: relative;
+        z-index: 2;
+        border: none;
+        border-radius: 0;
+        outline: none;
+        box-shadow: none;
+    }
 </style>
 
 <div class="container-fluid">
-    <div id="usercontrols-row" class="row align-items-center mb-2 usercontrols">
-        <div class="col d-flex gap-1">
-            <ProjectMenu Complete="ProjectActionComplete"></ProjectMenu>
-        </div>
-        <div class="col d-flex gap-1">
-            <GridControlMenu @ref=GridControlMenu Complete="HandleGridControlComplete"></GridControlMenu>
-        </div>
-        <div class="col-auto">
-            <LoginDisplay />
+    <!-- Floating Header Panel -->
+    <div class="header-panel">
+        <div class="header-content">
+            <div class="header-section">
+                <div class="col">
+                    <ProjectMenu Complete="ProjectActionComplete"></ProjectMenu>
+                </div>
+                <div class="col">
+                    <GridControlMenu @ref=GridControlMenu Complete="HandleGridControlComplete"></GridControlMenu>
+                </div>
+                <div class="col-auto">
+                    <LoginDisplay />
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Main Content Area -->
     <div class="row">
-        <FluentSplitter Orientation="@Orientation.Horizontal"   BarSize="6" Panel1MinSize="25%" Panel2Size="30%" Panel2MinSize="30%">
+        <FluentSplitter Orientation="@Orientation.Horizontal" BarSize="8" Panel1MinSize="25%" Panel2Size="30%" Panel2MinSize="30%">
             <Panel1>
-                <div id="cy" style="width: 100%; height: 90vh;"></div>
+                <div class="cytoscape-container">
+                    <div id="cy" style="width: 100%; height: 88vh; border: none; box-shadow: none;"></div>
+                </div>
             </Panel1>
             <Panel2>
                 <DataViewer @ref="metaDataViewer"></DataViewer>

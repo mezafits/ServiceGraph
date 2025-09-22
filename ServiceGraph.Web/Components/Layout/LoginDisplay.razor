@@ -4,21 +4,190 @@
 @inject NavigationManager Navigation
 
 
-<div class="navbar-nav d-flex align-items-center">
+<div class="neon-user-display d-flex align-items-center">
     @if (authState.User.Identity.IsAuthenticated)
     {
-        <div class="nav-item d-flex align-items-center gap-2">
-            <span class="navbar-text text-dark">Hello, @authState.User.Identity.Name</span>
-            <button class="btn btn-link p-0 text-primary" @onclick="()=> Logout()">Sign out</button>
+        <div class="user-info-panel glass-panel d-flex align-items-center gap-3" 
+             role="banner"
+             aria-label="User information">
+            <div class="user-avatar" aria-label="User avatar">
+                <div class="avatar-circle">
+                    <span class="avatar-initial" aria-hidden="true">@GetUserInitial()</span>
+                </div>
+                <div class="status-indicator online" 
+                     aria-label="User status: Online"
+                     title="Online"></div>
+            </div>
+            <div class="user-details" aria-label="User details">
+                <span class="user-name" aria-label="Username">@GetDisplayName()</span>
+                <span class="user-status" aria-label="Status">Online</span>
+            </div>
+            <button class="btn-neon btn-neon-accent logout-btn" 
+                    @onclick="()=> Logout()" 
+                    @onkeydown="HandleKeyPress"
+                    tabindex="0"
+                    aria-label="Sign out of your account"
+                    title="Sign out">
+                <i class="logout-icon" aria-hidden="true">⏻</i>
+                Sign out
+            </button>
         </div>
     }
     else
     {
-        <div class="nav-item">
-            <button class="btn btn-apple ui-button" @onclick="()=> Login()">Sign in</button>
+        <div class="login-panel">
+            <button class="btn-neon btn-neon-primary" 
+                    @onclick="()=> Login()" 
+                    @onkeydown="HandleKeyPress"
+                    tabindex="0"
+                    aria-label="Sign in to your account"
+                    title="Sign in">
+                <i class="login-icon" aria-hidden="true">🔐</i>
+                Sign in
+            </button>
         </div>
     }
 </div>
+
+<style>
+    .neon-user-display {
+        position: relative;
+    }
+
+    .user-info-panel {
+        padding: var(--space-md);
+        border-radius: var(--border-radius-lg);
+        border: 1px solid var(--neon-blue-start);
+        box-shadow: 0 0 15px var(--neon-blue-glow);
+        transition: all var(--transition-normal);
+    }
+
+    .user-info-panel:hover {
+        box-shadow: 0 0 25px var(--neon-blue-glow);
+        border-color: var(--neon-blue-end);
+    }
+
+    .user-avatar {
+        position: relative;
+    }
+
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--neon-purple-start), var(--neon-pink-start));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--neon-purple-start);
+        box-shadow: 0 0 15px var(--neon-purple-glow);
+    }
+
+    .avatar-initial {
+        color: var(--text-primary);
+        font-weight: bold;
+        font-size: 16px;
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    }
+
+    .status-indicator {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid var(--bg-primary);
+    }
+
+    .status-indicator.online {
+        background: var(--neon-green-start);
+        box-shadow: 0 0 8px var(--neon-green-glow);
+        animation: statusPulse 2s ease-in-out infinite;
+    }
+
+    @@keyframes statusPulse {
+        0%, 100% { 
+            box-shadow: 0 0 8px var(--neon-green-glow);
+        }
+        50% { 
+            box-shadow: 0 0 15px var(--neon-green-glow);
+        }
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-xs);
+    }
+
+    .user-name {
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 14px;
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+    }
+
+    .user-status {
+        color: var(--neon-green-end);
+        font-size: 12px;
+        text-shadow: 0 0 5px var(--neon-green-glow);
+    }
+
+    .logout-btn {
+        padding: var(--space-sm) var(--space-md);
+        font-size: 13px;
+        min-width: auto;
+        outline: none;
+        transition: all var(--transition-normal);
+    }
+
+    .logout-btn:focus,
+    .btn-neon:focus {
+        outline: 2px solid var(--neon-blue-start);
+        outline-offset: 2px;
+        transform: scale(1.02);
+        box-shadow: 0 0 15px var(--neon-blue-glow);
+    }
+
+    .logout-btn:hover,
+    .btn-neon:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .logout-btn:active,
+    .btn-neon:active {
+        transform: translateY(0);
+    }
+
+    .logout-icon,
+    .login-icon {
+        margin-right: var(--space-xs);
+        font-size: 14px;
+    }
+
+    .login-panel {
+        display: flex;
+        align-items: center;
+    }
+
+    @@media (max-width: 768px) {
+        .user-info-panel {
+            padding: var(--space-sm);
+            gap: var(--space-sm);
+        }
+        
+        .user-details {
+            display: none;
+        }
+        
+        .logout-btn {
+            padding: var(--space-xs) var(--space-sm);
+            font-size: 12px;
+        }
+    }
+</style>
 
 
 @code {
@@ -40,4 +209,42 @@
         Navigation.NavigateToLogin("/MicrosoftIdentity/Account/SignIn");
     }
 
+    private string GetUserInitial()
+    {
+        if (authState?.User?.Identity?.Name != null)
+        {
+            return authState.User.Identity.Name.Substring(0, 1).ToUpper();
+        }
+        return "U";
+    }
+
+    private string GetDisplayName()
+    {
+        if (authState?.User?.Identity?.Name != null)
+        {
+            var name = authState.User.Identity.Name;
+            // Try to extract display name from email or use full name
+            if (name.Contains("@"))
+            {
+                return name.Split('@')[0];
+            }
+            return name.Length > 15 ? name.Substring(0, 15) + "..." : name;
+        }
+        return "User";
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" || e.Key == " ")
+        {
+            if (authState.User.Identity.IsAuthenticated)
+            {
+                Logout();
+            }
+            else
+            {
+                Login();
+            }
+        }
+    }
 }
