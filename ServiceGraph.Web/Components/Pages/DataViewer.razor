@@ -7,8 +7,8 @@
     .metadata-container {
         display: flex;
         flex-direction: column;
-        gap: var(--space-md);
-        padding: var(--space-lg);
+        gap: var(--space-sm);
+        padding: var(--space-sm);
         background: var(--glass-bg);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
@@ -315,20 +315,22 @@
     .notes-section {
         display: flex;
         flex-direction: column;
-        gap: var(--space-lg);
+        gap: var(--space-sm);
         background: var(--glass-bg);
         border-radius: var(--border-radius-md);
-        padding: var(--space-lg);
+        padding: var(--space-sm);
         border: 1px solid rgba(255, 255, 255, 0.1);
+        height: calc(100vh - 100px);
     }
 
     .notes-controls {
         display: flex;
         align-items: center;
-        gap: var(--space-lg);
+        gap: var(--space-md);
         justify-content: flex-start;
-        padding-bottom: var(--space-md);
+        padding: var(--space-xs) 0;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        flex-shrink: 0;
     }
 
     .edit-btn {
@@ -370,13 +372,13 @@
         border: 1px solid var(--neon-blue-start);
         border-radius: var(--border-radius-md);
         color: var(--text-primary);
-        padding: var(--space-lg);
+        padding: var(--space-sm);
         font-family: 'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
         font-size: 14px;
         line-height: 1.6;
-        resize: vertical;
+        resize: none;
         width: 100%;
-        height: calc(70vh - 120px);
+        flex: 1;
         backdrop-filter: blur(5px);
         -webkit-backdrop-filter: blur(5px);
         transition: all var(--transition-normal);
@@ -404,51 +406,54 @@
     }
 
     .notes-preview {
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 1rem;
-        background-color: #fafafa;
-        height: calc(70vh - 120px);
+        border: 1px solid var(--neon-blue-start);
+        border-radius: var(--border-radius-md);
+        padding: var(--space-sm);
+        background: #f8f8f2;
+        flex: 1;
         line-height: 1.6;
         overflow-y: auto;
+        color: #2d3748;
     }
 
     .notes-preview h1 {
         font-size: 1.5rem;
         margin-bottom: 1rem;
-        color: #333;
+        color: #1a202c;
     }
 
     .notes-preview h2 {
         font-size: 1.25rem;
         margin-bottom: 0.75rem;
         margin-top: 1.5rem;
-        color: #555;
+        color: #2d3748;
     }
 
     .notes-preview h3 {
         font-size: 1.1rem;
         margin-bottom: 0.5rem;
         margin-top: 1rem;
-        color: #666;
+        color: #4a5568;
     }
 
     .notes-preview pre {
-        background-color: #f5f5f5;
-        border: 1px solid #ddd;
+        background-color: #f1f1f1;
+        border: 1px solid #d1d5db;
         border-radius: 4px;
         padding: 1rem;
         overflow-x: auto;
         font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
         font-size: 0.9rem;
+        color: #374151;
     }
 
     .notes-preview code {
-        background-color: #f5f5f5;
+        background-color: #f1f1f1;
         padding: 0.2rem 0.4rem;
         border-radius: 3px;
         font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
         font-size: 0.9rem;
+        color: #374151;
     }
 
     .notes-preview pre code {
@@ -457,52 +462,100 @@
     }
 
     .notes-preview a {
-        color: var(--neon-blue-end);
+        color: #3182ce;
         text-decoration: none;
         transition: all var(--transition-fast);
     }
 
     .notes-preview a:hover {
-        color: var(--text-primary);
-        text-shadow: 0 0 8px var(--neon-blue-glow);
+        color: #2c5aa0;
         text-decoration: underline;
+    }
+
+    .notes-empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        text-align: center;
+        padding: 2rem;
+        color: #6b7280;
+    }
+
+    .notes-empty-icon {
+        font-size: 4rem;
+        color: #d1d5db;
+        margin-bottom: 1rem;
+    }
+
+    .notes-empty-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+
+    .notes-empty-subtitle {
+        font-size: 1rem;
+        color: #6b7280;
+        margin-bottom: 1.5rem;
+    }
+
+    .notes-empty-features {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .notes-empty-feature {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #9ca3af;
+        font-size: 0.9rem;
+    }
+
+    .notes-empty-feature-icon {
+        color: #3182ce;
+        font-weight: bold;
     }
 </style>
 
 <div class="metadata-container">
-    <FluentTabs @bind-ActiveTabId="@activeTabId">
-        <FluentTab Id="Notes" Label="Notes">
-            <div class="tab-content">
-                <div class="notes-section">
-                    <div class="notes-controls">
-                        <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="ToggleNotesEditMode" Title="@(isNotesEditMode ? "Preview" : "Edit")" IconStart="@(isNotesEditMode ? new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size16.Eye() : new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size16.Edit())" Style="width: auto; min-width: 40px;" />
-                        <div class="font-scale-control">
-                            <FluentLabel Style="font-size: 0.9rem;">Scale:</FluentLabel>
-                            <FluentSlider @bind-Value="fontScale" Min="0.5" Max="2.0" Step="0.1" class="font-scale-slider" />
-                            <FluentLabel Style="font-size: 0.8rem; color: #666;">@(Math.Round(fontScale * 100))%</FluentLabel>
-                        </div>
-                    </div>
-                    @if (isNotesEditMode)
-                    {
-                        <div class="notes-editor">
-                            <textarea @bind="notesMarkdown" class="notes-textarea scaled-content" style="--font-scale: @fontScale;"></textarea>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="notes-preview scaled-content" style="--font-scale: @fontScale;">
-                            @((MarkupString)ConvertMarkdownToHtml(notesMarkdown))
-                        </div>
-                    }
-                </div>
+    <div class="notes-section">
+        <div class="notes-controls">
+            <FluentButton Appearance="Appearance.Outline" Size="Size.Small" OnClick="ToggleNotesEditMode" Title="@(isNotesEditMode ? "Preview" : "Edit")" IconStart="@(isNotesEditMode ? new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size16.Eye() : new Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size16.Edit())" Style="width: auto; min-width: 40px;" />
+            <div class="font-scale-control">
+                <FluentLabel Style="font-size: 0.9rem;">Scale:</FluentLabel>
+                <FluentSlider @bind-Value="fontScale" Min="0.5" Max="2.0" Step="0.1" class="font-scale-slider" />
+                <FluentLabel Style="font-size: 0.8rem; color: #666;">@(Math.Round(fontScale * 100))%</FluentLabel>
             </div>
-        </FluentTab>
+        </div>
+        @if (isNotesEditMode)
+        {
+            <textarea @bind="notesMarkdown" class="notes-textarea scaled-content" style="--font-scale: @fontScale;"></textarea>
+        }
+        else
+        {
+            <div class="notes-preview scaled-content" style="--font-scale: @fontScale;">
+                @((MarkupString)ConvertMarkdownToHtml(notesMarkdown))
+            </div>
+        }
+    </div>
+    
+    @* Commented out Properties tab
+    <FluentTabs @bind-ActiveTabId="@activeTabId">
         <FluentTab Id="Properties" Label="Properties">
             <div class="tab-content">
                 <MetaDataPropertiesComponent OnSelected=SelectMetadata metadata="@propertyMetadata" />
             </div>
         </FluentTab>
     </FluentTabs>
+    *@
 </div>
 
 
@@ -627,7 +680,28 @@
     
     private string ConvertMarkdownToHtml(string markdown)
     {
-        if (string.IsNullOrEmpty(markdown)) return string.Empty;
+        if (string.IsNullOrEmpty(markdown) || markdown.Trim() == "# Notes\n\nAdd your notes here...")
+        {
+            return @"<div class=""notes-empty-state"">
+                        <div class=""notes-empty-icon"">📝</div>
+                        <div class=""notes-empty-title"">Start Taking Notes</div>
+                        <div class=""notes-empty-subtitle"">Click Edit to begin documenting your thoughts</div>
+                        <ul class=""notes-empty-features"">
+                            <li class=""notes-empty-feature"">
+                                <span class=""notes-empty-feature-icon"">✓</span>
+                                Markdown support for rich formatting
+                            </li>
+                            <li class=""notes-empty-feature"">
+                                <span class=""notes-empty-feature-icon"">✓</span>
+                                Live preview with font scaling
+                            </li>
+                            <li class=""notes-empty-feature"">
+                                <span class=""notes-empty-feature-icon"">✓</span>
+                                Code blocks and links supported
+                            </li>
+                        </ul>
+                    </div>";
+        }
         
         // Simple markdown to HTML conversion
         var html = markdown
