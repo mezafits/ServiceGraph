@@ -58,8 +58,23 @@
     .header-section {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: var(--space-md);
-        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+        flex: 1;
+    }
+
+    .header-right {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-shrink: 0;
     }
 
     .header-section .col {
@@ -76,8 +91,65 @@
         transition: all var(--transition-normal);
     }
 
-    .header-section .col-auto {
-        margin-left: auto;
+    /* Compact LoginDisplay styling - override component styles */
+    .header-right .neon-user-display {
+        position: static !important;
+    }
+
+    .header-right .user-info-panel {
+        padding: var(--space-xs) var(--space-sm) !important;
+        gap: var(--space-sm) !important;
+        min-height: auto !important;
+        align-items: center !important;
+    }
+
+    .header-right .avatar-circle {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    .header-right .avatar-initial {
+        font-size: 12px !important;
+    }
+
+    .header-right .status-indicator {
+        width: 8px !important;
+        height: 8px !important;
+        bottom: -1px !important;
+        right: -1px !important;
+    }
+
+    .header-right .user-name {
+        font-size: 12px !important;
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .header-right .logout-btn {
+        padding: var(--space-xs) var(--space-sm) !important;
+        font-size: 11px !important;
+        min-width: auto !important;
+    }
+
+    .header-right .logout-icon {
+        font-size: 12px !important;
+    }
+
+    .header-right .login-panel .btn-neon {
+        padding: var(--space-xs) var(--space-sm) !important;
+        font-size: 12px !important;
+    }
+
+    /* Remove project selector margin */
+    .header-left .project-selector {
+        margin-bottom: 0 !important;
+    }
+
+    .header-left .project-selector-container {
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
     /* Enhanced Cytoscape Container */
@@ -123,13 +195,15 @@
     <div class="header-panel">
         <div class="header-content">
             <div class="header-section">
-                <div class="col">
-                    <ProjectMenu Complete="ProjectActionComplete"></ProjectMenu>
+                <div class="header-left">
+                    <div class="col">
+                        <ProjectMenu Complete="ProjectActionComplete"></ProjectMenu>
+                    </div>
+                    <div class="col">
+                        <GridControlMenu @ref=GridControlMenu Complete="HandleGridControlComplete"></GridControlMenu>
+                    </div>
                 </div>
-                <div class="col">
-                    <GridControlMenu @ref=GridControlMenu Complete="HandleGridControlComplete"></GridControlMenu>
-                </div>
-                <div class="col-auto">
+                <div class="header-right">
                     <LoginDisplay />
                 </div>
             </div>

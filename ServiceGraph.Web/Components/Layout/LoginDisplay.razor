@@ -18,10 +18,7 @@
                      aria-label="User status: Online"
                      title="Online"></div>
             </div>
-            <div class="user-details" aria-label="User details">
-                <span class="user-name" aria-label="Username">@GetDisplayName()</span>
-                <span class="user-status" aria-label="Status">Online</span>
-            </div>
+            <span class="user-name" aria-label="Username">@GetDisplayName()</span>
             <button class="btn-neon btn-neon-accent logout-btn" 
                     @onclick="()=> Logout()" 
                     @onkeydown="HandleKeyPress"
@@ -55,7 +52,6 @@
     }
 
     .user-info-panel {
-        padding: var(--space-md);
         border-radius: var(--border-radius-lg);
         border: 1px solid var(--neon-blue-start);
         box-shadow: 0 0 15px var(--neon-blue-glow);
@@ -115,23 +111,11 @@
         }
     }
 
-    .user-details {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-xs);
-    }
-
     .user-name {
         color: var(--text-primary);
         font-weight: 600;
         font-size: 14px;
         text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
-    }
-
-    .user-status {
-        color: var(--neon-green-end);
-        font-size: 12px;
-        text-shadow: 0 0 5px var(--neon-green-glow);
     }
 
     .logout-btn {
@@ -178,7 +162,7 @@
             gap: var(--space-sm);
         }
         
-        .user-details {
+        .user-name {
             display: none;
         }
         
